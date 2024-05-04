@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using sxlib;
-using sxlib.Specialized;
 using static SynapseUI.EventMapping.EventMap;
 
 namespace SynapseUI
@@ -12,8 +10,6 @@ namespace SynapseUI
     /// </summary>
     public partial class SplashScreen : Window
     {
-        public SxLibWPF SxUI;
-
         public SplashScreen()
         {
             InitializeComponent();
@@ -22,52 +18,14 @@ namespace SynapseUI
 
         private void Initialize()
         {
-            if (App.DEBUG)
-            {
-                OpenMainWindow(null);
-                return;
-            }
-
-            SxUI = SxLib.InitializeWPF(this, App.CURRENT_DIR);
-
-            SxUI.LoadEvent += LoadEventTriggered;
-
-            SxUI.Load();
+            OpenMainWindow();
+            return;
         }
 
-        // Sx Load Events //
-        private async void LoadEventTriggered(SxLibBase.SynLoadEvents Event, object Param)
+        private void OpenMainWindow()
         {
-            if (LoadEventMap.TryGetValue(Event, out string text))
-            {
-                if (LoadErrorEvents.ContainsKey(Event))
-                    ThrowLoadError(Event);
-
-                statusLabel.Content = text;
-
-                if (Event == SxLibBase.SynLoadEvents.READY)
-                {
-                    loadingBar.AnimateFinish();
-
-                    await Task.Delay(500);
-                    OpenMainWindow(SxUI);
-                }
-                else
-                {
-                    loadingBar.AnimateProgress(loadingBar.Progress + 20);
-                }
-            }
-        }
-
-        private void OpenMainWindow(SxLibWPF lib)
-        {
-            new ExecuteWindow(lib).Show();
+            new ExecuteWindow().Show();
             this.Close();
-        }
-
-        private void ThrowLoadError(SxLibBase.SynLoadEvents error)
-        {
-            new ErrorWindow(new Types.Error(error)).Show();
         }
 
         // Window Events //

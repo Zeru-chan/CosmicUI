@@ -93,12 +93,6 @@ namespace SynapseUI
                 return;
             }
 
-            if (ValidateSynapseInstall())
-            {
-                ThrowError(BaseException.INVALID_SYNAPSE_INSTALL);
-                return;
-            }
-
             ValidateCustomInstall();
 
             if (!SKIP_CEF)
@@ -152,7 +146,8 @@ namespace SynapseUI
             string[] folders = new string[]
             {
                 @".\bin\custom\",
-                @".\bin\custom\ace\"
+                @".\bin\custom\ace\",
+                @".\scripts\"
             };
 
             foreach (string folder in folders)
@@ -165,13 +160,13 @@ namespace SynapseUI
                 BaseUrl = @"https://raw.githubusercontent.com/asunax-aaa/SynapseUI/master/SynapseUI/Resources/"
             };
 
-            downloader.Add(new FileEntry("Editor.html", "", "Monaco"));
+            //downloader.Add(new FileEntry("Editor.html", "", "Monaco"));
             downloader.Add(new FileEntry("mode-lua.js", "ace", "Monaco/ace"));
-            downloader.Add(new FileEntry("Updater.exe"));
-            downloader.Add(new FileEntry("SLInjector.dll", Path.Combine(CURRENT_DIR, "bin"), "UnknownPatch", false));
+            //downloader.Add(new FileEntry("Updater.exe"));
+            //downloader.Add(new FileEntry("SLInjector.dll", Path.Combine(CURRENT_DIR, "bin"), "UnknownPatch", false));
 
-            if (!DEBUG)
-                VersionChecker.Run(downloader);
+            //if (!DEBUG)
+            //    VersionChecker.Run(downloader);
 
             downloader.Begin();
         }

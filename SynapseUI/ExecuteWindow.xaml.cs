@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using sxlib.Specialized;
 using SynapseUI.Types;
 using SynapseUI.Controls.AceEditor;
 using static SynapseUI.EventMapping.EventMap;
@@ -18,25 +17,14 @@ namespace SynapseUI
     {
         public Options SynOptions { get; set; } = new Options();
 
-        private SxLibWPF SxUI;
         private AceEditor Editor;
         private FileSystemWatcher ScriptWatcher;
 
         private bool _optionWindowOpened = false;
 
-        public ExecuteWindow(SxLibWPF lib)
+        public ExecuteWindow()
         {
             InitializeComponent();
-
-            if (lib != null)
-            {
-                SxUI = lib;
-                lib.SetWindow(this);
-
-                SynOptions.CopyFrom(lib.GetOptions());
-
-                SxUI.AttachEvent += SxUI_AttachEvent;
-            }
 
             if (Directory.Exists("./scripts"))
             {
@@ -66,9 +54,6 @@ namespace SynapseUI
         {
             SaveScriptTabs();
             OptionsWindow.DisposeMutex();
-
-            if (!App.DEBUG)
-                SxUI.Close();
 
             Environment.Exit(0);
         }
@@ -198,25 +183,6 @@ namespace SynapseUI
             }));
         }
 
-        // Sx Attach Events //
-        private async void SxUI_AttachEvent(SxLibBase.SynAttachEvents Event, object Param)
-        {
-            attachInfoLabel.Content = AttachEventMap.TryGetValue(Event, out string name) ? name : "";
-
-            switch (Event)
-            {
-                case SxLibBase.SynAttachEvents.READY:
-                case SxLibBase.SynAttachEvents.NOT_INJECTED:
-                case SxLibBase.SynAttachEvents.NOT_RUNNING_LATEST_VER_UPDATING:
-                case SxLibBase.SynAttachEvents.NOT_UPDATED:
-                case SxLibBase.SynAttachEvents.FAILED_TO_ATTACH:
-                case SxLibBase.SynAttachEvents.FAILED_TO_FIND:
-                case SxLibBase.SynAttachEvents.FAILED_TO_UPDATE:
-                case SxLibBase.SynAttachEvents.ALREADY_INJECTED:
-                    await attachInfoLabel.SetActive(false);
-                    break;
-            }
-        }
 
         // Button Events //
         private void OpenOptions_Click(object sender, RoutedEventArgs e)
@@ -224,7 +190,7 @@ namespace SynapseUI
             if (_optionWindowOpened)
                 return;
 
-            var p = new OptionsWindow(SxUI, this, Editor);
+            var p = new OptionsWindow(this, Editor);
             p.Closed += (s, ev) => { _optionWindowOpened = false; };
             p.OptionChanged += (s, ev) => { SynOptions.SetProperty(ev.Entry.Name, ev.Value); };
 
@@ -235,7 +201,7 @@ namespace SynapseUI
 
         private void AttachButton_Click(object sender, RoutedEventArgs e)
         {
-            SxUI?.Attach();
+
         }
 
         private async void SaveFileButton_Click(object sender, RoutedEventArgs e)
@@ -251,20 +217,7 @@ namespace SynapseUI
 
         private void ExecuteFileButton_Click(object sender, RoutedEventArgs e)
         {
-            if (SxUI is null)
-                return;
 
-            var diag = Functions.Utils.Dialog.OpenFileDialog();
-            switch (diag.ShowDialog())
-            {
-                case true:
-                    SxUI.Execute(File.ReadAllText(diag.FileName));
-                    break;
-
-                case false:
-                default:
-                    break;
-            }
         }
 
         private void ClearEditorButton_Click(object sender, RoutedEventArgs e)
@@ -280,21 +233,19 @@ namespace SynapseUI
 
         private void ExecuteEditorButton_Click(object sender, RoutedEventArgs e)
         {
-            string contents = Editor?.GetText() ?? null;
-            if (contents != null && SxUI != null)
-                SxUI.Execute(contents);
+
         }
 
         private void ExecuteMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (SxUI is null || scriptsListBox.SelectedIndex == -1)
+            if (scriptsListBox.SelectedIndex == -1)
                 return;
 
             string path = @".\scripts\" + (string)scriptsListBox.SelectedItem;
-            if (File.Exists(path))
-                SxUI.Execute(File.ReadAllText(path));
-            else
+            if (!File.Exists(path))
+            {
                 scriptsListBox.Items.RemoveAt(scriptsListBox.SelectedIndex);
+            }
         }
 
         private void LoadEditorMenuItem_Click(object sender, RoutedEventArgs e)

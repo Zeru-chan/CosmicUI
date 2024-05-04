@@ -9,7 +9,7 @@ namespace SynapseUI.Controls.AceEditor
 {
     public class CefLoader
     {
-        private static string path = Path.Combine(App.CURRENT_DIR, @"bin\");
+        private static string path = Path.Combine(App.CURRENT_DIR) + "//";
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool Init()

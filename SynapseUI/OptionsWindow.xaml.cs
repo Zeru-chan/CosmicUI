@@ -7,7 +7,6 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Diagnostics;
 using System.Threading;
-using sxlib.Specialized;
 using SynapseUI.Types;
 using SynapseUI.Functions.Utils;
 using SynapseUI.Controls.AceEditor;
@@ -27,18 +26,14 @@ namespace SynapseUI
         private static string _theme = "Tomorrow-night-eighties";
 
         public OptionsEntryList OptionsList { get; } = new OptionsEntryList();
-        public ScriptHubEntries ScriptEntries { get; } = new ScriptHubEntries();
-
-        private SxLibWPF SxUI;
         private bool _firstLoad = true;
         private AceEditor _aceEditor;
 
         private Options _tempOptions = new Options();
 
-        public OptionsWindow(SxLibWPF lib, ExecuteWindow main, AceEditor editor)
+        public OptionsWindow(ExecuteWindow main, AceEditor editor)
         {
             InitializeComponent();
-            SxUI = lib;
 
             _aceEditor = editor;
 
@@ -47,7 +42,6 @@ namespace SynapseUI
 
             Closing += (s, e) =>
             {
-                SxUI?.ScriptHubMarkAsClosed();
                 App.SETTINGS.Save();
             };
         }
@@ -80,35 +74,12 @@ namespace SynapseUI
 
         public void LoadOptions()
         {
-            if (SxUI is null)
-                return;
 
-            Options options = new Options(SxUI.GetOptions());
-
-            var presenter = VisualHelper.GetVisualChild<ItemsPresenter>(OptionsPresenter);
-            var panel = VisualTreeHelper.GetChild(presenter, 0) as StackPanel;
-
-            foreach (ContentPresenter child in panel.Children)
-            {
-                var slider = child.ContentTemplate.FindName("toggle", child) as Controls.SliderToggle;
-                var entry = (OptionEntry)child.DataContext;
-
-                slider.IsToggled = options.GetProperty(entry.Name);
-            }
         }
 
         public void LoadScripts()
         {
-            if (SxUI is null)
-                return;
 
-            SxUI.ScriptHubEvent += (entries) =>
-            {
-                foreach (var entry in entries)
-                    ScriptEntries.Add(new ScriptHubEntry(entry));
-            };
-
-            SxUI.ScriptHub();
         }
 
         public static void DisposeMutex()
@@ -143,9 +114,6 @@ namespace SynapseUI
 
         protected virtual void OnOptionChanged(OptionChangedEventArgs e)
         {
-            if (SxUI is null)
-                return;
-
             OptionChanged?.Invoke(this, e);
         }
 
@@ -153,21 +121,12 @@ namespace SynapseUI
         // Window Events //
         private void SliderToggle_ToggledStatusChanged(object sender, Controls.ToggledStatusChangedEventArgs e)
         {
-            var slider = sender as Controls.SliderToggle;
-            OptionEntry entry = (OptionEntry)slider.DataContext;
 
-            _tempOptions.SetProperty(entry.Name, e.Value);
-            if (!_firstLoad && SxUI != null)
-            {
-                SxUI.SetOptions(_tempOptions);
-                OnOptionChanged(new OptionChangedEventArgs(entry, e.Value));
-            }
         }
 
         private void Execute_ScriptButton(object sender, MouseButtonEventArgs e)
         {
             var image = sender as Image;
-            (image.DataContext as ScriptHubEntry).Execute();
         }
 
         private void KillRobloxButton_Click(object sender, RoutedEventArgs e)

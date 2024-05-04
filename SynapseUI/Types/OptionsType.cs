@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using sxlib.Static;
 
 namespace SynapseUI.Types
 {
@@ -8,85 +7,76 @@ namespace SynapseUI.Types
     /// A custom implementaion of how Synapse stores and handles options, it's practically the same apart from it includes { get; set; } accessors,
     /// which allow the property to be detected by object.GetProperty().
     /// </summary>
-    public class Options : Data.Options, INotifyPropertyChanged
+    public class Options : INotifyPropertyChanged
     {
-        public new bool AutoAttach
+        private bool autoAttach;
+        public bool AutoAttach
         {
-            get => base.AutoAttach;
-            set => base.AutoAttach = value;
+            get { return autoAttach; }
+            set { autoAttach = value; }
         }
 
-        public new bool AutoJoin // Unused by sxlib.
+        private bool autoJoin;
+        public bool AutoJoin // Unused by sxlib.
         {
-            get => base.AutoJoin;
-            set => base.AutoJoin = value;
+            get { return autoJoin; }
+            set { autoJoin = value; }
         }
 
-        public new bool AutoLaunch
+        private bool autoLaunch;
+        public bool AutoLaunch
         {
-            get => base.AutoLaunch;
-            set => base.AutoLaunch = value;
+            get { return autoLaunch; }
+            set { autoLaunch = value; }
         }
 
-        public new bool ClearConfirmation
+        private bool clearConfirmation;
+        public bool ClearConfirmation
         {
-            get => base.ClearConfirmation;
-            set => base.ClearConfirmation = value;
+            get { return clearConfirmation; }
+            set { clearConfirmation = value; }
         }
 
-        public new bool CloseConfirmation
+        private bool closeConfirmation;
+        public bool CloseConfirmation
         {
-            get => base.CloseConfirmation;
-            set => base.CloseConfirmation = value;
+            get { return closeConfirmation; }
+            set { closeConfirmation = value; }
         }
 
-        public new bool InternalUI
+        private bool internalU;
+        public bool InternalUI
         {
-            get => base.InternalUI;
-            set => base.InternalUI = value;
+            get { return internalU; }
+            set { internalU = value; }
         }
 
-        public new bool TopMost
+        private bool topMost;
+        public bool TopMost
         {
-            get => base.TopMost;
+            get { return topMost; }
             set
             {
-                base.TopMost = value;
+                topMost = value;
                 OnPropertyChanged("TopMost");
             }
         }
 
-        public new bool UnlockFPS
+        private bool unlockFPS;
+        public bool UnlockFPS
         {
-            get => base.UnlockFPS;
-            set => base.UnlockFPS = value;
+            get { return unlockFPS; }
+            set { unlockFPS = value; }
         }
 
-        public new bool SilentLaunch
+        private bool silentLaunch;
+        public bool SilentLaunch
         {
-            get => base.SilentLaunch;
-            set => base.SilentLaunch = value;
+            get { return silentLaunch; }
+            set { silentLaunch = value; }
         }
 
         public Options() : base() { }
-
-        public Options(Data.Options options)
-        {
-            CopyFrom(options);
-        }
-
-        public void CopyFrom(Data.Options options)
-        {
-            AutoAttach = options.AutoAttach;
-            AutoJoin = options.AutoJoin;
-            AutoLaunch = options.AutoLaunch;
-            ClearConfirmation = options.ClearConfirmation;
-            CloseConfirmation = options.CloseConfirmation;
-            InternalUI = options.InternalUI;
-            TopMost = options.TopMost;
-            UnlockFPS = options.UnlockFPS;
-            SilentLaunch = options.SilentLaunch;
-        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
