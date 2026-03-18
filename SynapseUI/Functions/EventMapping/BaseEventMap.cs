@@ -4,7 +4,7 @@ using SynapseUI.Exceptions;
 namespace SynapseUI.EventMapping
 {
     /// <summary>
-    /// Generic base errors that do not involve CefSharp or sxlib.
+    /// Generic base errors that do not involve CefSharp or legacy API.
     /// </summary>
    public static class BaseEventMap
    {
