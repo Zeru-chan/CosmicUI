@@ -8,7 +8,7 @@ using static SynapseUI.EventMapping.BaseEventMap;
 namespace SynapseUI.Types
 {
     /// <summary>
-    /// A base error class that does not use any CefSharp or sxlib library imports.
+    /// A base error class that does not use any CefSharp or legacy API library imports.
     /// </summary>
     public class BaseError : INotifyPropertyChanged
     {
