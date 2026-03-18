@@ -1,92 +1,25 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using sxlib.Static;
 
 namespace SynapseUI.Types
 {
-    /// <summary>
-    /// A custom implementaion of how Synapse stores and handles options, it's practically the same apart from it includes { get; set; } accessors,
-    /// which allow the property to be detected by object.GetProperty().
-    /// </summary>
-    public class Options : Data.Options, INotifyPropertyChanged
+    public class Options : INotifyPropertyChanged
     {
-        public new bool AutoAttach
+        public bool ClearConfirmation { get; set; } = true;
+        public bool CloseConfirmation { get; set; } = true;
+        public bool TopMost
         {
-            get => base.AutoAttach;
-            set => base.AutoAttach = value;
-        }
-
-        public new bool AutoJoin // Unused by sxlib.
-        {
-            get => base.AutoJoin;
-            set => base.AutoJoin = value;
-        }
-
-        public new bool AutoLaunch
-        {
-            get => base.AutoLaunch;
-            set => base.AutoLaunch = value;
-        }
-
-        public new bool ClearConfirmation
-        {
-            get => base.ClearConfirmation;
-            set => base.ClearConfirmation = value;
-        }
-
-        public new bool CloseConfirmation
-        {
-            get => base.CloseConfirmation;
-            set => base.CloseConfirmation = value;
-        }
-
-        public new bool InternalUI
-        {
-            get => base.InternalUI;
-            set => base.InternalUI = value;
-        }
-
-        public new bool TopMost
-        {
-            get => base.TopMost;
+            get => _topMost;
             set
             {
-                base.TopMost = value;
-                OnPropertyChanged("TopMost");
+                _topMost = value;
+                OnPropertyChanged(nameof(TopMost));
             }
         }
 
-        public new bool UnlockFPS
-        {
-            get => base.UnlockFPS;
-            set => base.UnlockFPS = value;
-        }
+        public bool UnlockFPS { get; set; }
 
-        public new bool SilentLaunch
-        {
-            get => base.SilentLaunch;
-            set => base.SilentLaunch = value;
-        }
-
-        public Options() : base() { }
-
-        public Options(Data.Options options)
-        {
-            CopyFrom(options);
-        }
-
-        public void CopyFrom(Data.Options options)
-        {
-            AutoAttach = options.AutoAttach;
-            AutoJoin = options.AutoJoin;
-            AutoLaunch = options.AutoLaunch;
-            ClearConfirmation = options.ClearConfirmation;
-            CloseConfirmation = options.CloseConfirmation;
-            InternalUI = options.InternalUI;
-            TopMost = options.TopMost;
-            UnlockFPS = options.UnlockFPS;
-            SilentLaunch = options.SilentLaunch;
-        }
+        private bool _topMost;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -97,14 +30,14 @@ namespace SynapseUI.Types
 
         public void SetProperty(string name, bool value)
         {
-            var propInfo = this.GetType().GetProperty(name);
-            propInfo.SetValue(this, value);
+            var propInfo = GetType().GetProperty(name);
+            propInfo?.SetValue(this, value);
         }
 
         public bool GetProperty(string name)
         {
-            var propInfo = this.GetType().GetProperty(name);
-            return (bool)propInfo.GetValue(this);
+            var propInfo = GetType().GetProperty(name);
+            return propInfo != null && (bool)propInfo.GetValue(this);
         }
     }
 
@@ -124,14 +57,10 @@ namespace SynapseUI.Types
     {
         public OptionsEntryList() : base()
         {
-            Add(new OptionEntry("Unlock FPS", "UnlockFPS"));
-            Add(new OptionEntry("Auto-Launch", "AutoLaunch"));
-            Add(new OptionEntry("Auto-Attach", "AutoAttach"));
-            Add(new OptionEntry("Silent Launch", "SilentLaunch"));
-            Add(new OptionEntry("Clear Editor Prompt", "ClearConfirmation"));
-            Add(new OptionEntry("File Closing Prompt", "CloseConfirmation"));
-            Add(new OptionEntry("Internal UI", "InternalUI"));
-            Add(new OptionEntry("Top Most", "TopMost"));
+            Add(new OptionEntry("Unlock FPS", nameof(Options.UnlockFPS)));
+            Add(new OptionEntry("Clear Editor Prompt", nameof(Options.ClearConfirmation)));
+            Add(new OptionEntry("File Closing Prompt", nameof(Options.CloseConfirmation)));
+            Add(new OptionEntry("Top Most", nameof(Options.TopMost)));
         }
     }
 }
