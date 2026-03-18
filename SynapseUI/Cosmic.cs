@@ -1,3 +1,12 @@
+// ═══════════════════════════════════════════════════════════════════
+//  Usage:
+//    Cosmic.Initialize();
+//    Cosmic.Attach();
+//    Cosmic.Execute("print('hello')");
+//    Cosmic.SetMaxFps(144);
+//    Cosmic.Shutdown();
+// ═══════════════════════════════════════════════════════════════════
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,9 +22,16 @@ using System.Net.Http;
 
 public static class Cosmic
 {
+    /// <summary>Fired when a module connects. Provides the process ID.</summary>
     public static event Action<int> OnClientConnected;
+
+    /// <summary>Fired when a module disconnects. Provides the process ID.</summary>
     public static event Action<int> OnClientDisconnected;
+
+    /// <summary>Fired when a module sends console output. (pid, status, message) — status: 0=print, 1=warn, 2=error, 3=info</summary>
     public static event Action<int, int, string> OnOutput;
+
+    /// <summary>Fired when a module reports user info. (pid, userId, gameId)</summary>
     public static event Action<int, int, int> OnUserInfo;
 
     private const int WsPort = 24950;
@@ -27,9 +43,16 @@ public static class Cosmic
 
     private static readonly string[] _robloxProcessNames = { "RobloxPlayerBeta", "Windows10Universal" };
 
+    /// <summary>Whether the WebSocket server is running.</summary>
     public static bool IsRunning { get; private set; }
+
+    /// <summary>Number of connected modules.</summary>
     public static int ClientCount => _clients.Count;
 
+    /// <summary>
+    /// Initialize Cosmic - starts the WebSocket server on port 24950.
+    /// Call this once before using any other methods.
+    /// </summary>
     private static readonly HttpClient _http = new HttpClient();
 
     private static Task _initTask;
@@ -72,6 +95,9 @@ public static class Cosmic
         }
     }
 
+    /// <summary>
+    /// Shutdown Cosmic - stops the WebSocket server and disconnects all modules.
+    /// </summary>
     public static void Shutdown()
     {
         if (!_initialized) return;
@@ -91,6 +117,10 @@ public static class Cosmic
         try { _listener?.Close(); } catch { }
     }
 
+    /// <summary>
+    /// Find all running Roblox processes and inject into each one.
+    /// Returns a dictionary of pid to exit code (6 = success).
+    /// </summary>
     public static Dictionary<int, int> Attach()
     {
         _EnsureInit();
@@ -103,6 +133,10 @@ public static class Cosmic
         return results;
     }
 
+    /// <summary>
+    /// Inject into a specific Roblox process by PID.
+    /// Returns the injector exit code (6 = success).
+    /// </summary>
     public static int Attach(int pid)
     {
         _EnsureInit();
@@ -129,6 +163,7 @@ public static class Cosmic
         }
     }
 
+    /// <summary>Get all running Roblox process IDs (whether injected or not).</summary>
     public static List<int> GetRobloxProcesses()
     {
         var pids = new List<int>();
@@ -147,18 +182,21 @@ public static class Cosmic
         return pids;
     }
 
+    /// <summary>Get all currently connected (injected) module PIDs.</summary>
     public static List<int> GetClients()
     {
         _EnsureInit();
         return _clients.Keys.ToList();
     }
 
+    /// <summary>Waits till the Module and Injector got downloaded</summary>
     public static async Task WaitForReady()
     {
         if (_initTask != null)
             await _initTask.ConfigureAwait(false);
     }
 
+    /// <summary>Translate an injector exit code to a human-readable message.</summary>
     public static string GetAttachStatusMessage(int exitCode)
     {
         switch (exitCode)
@@ -175,34 +213,50 @@ public static class Cosmic
         }
     }
 
+    /// <summary>Execute a Luau script on all connected modules.</summary>
     public static void Execute(string script)
     {
         _EnsureInit();
         _BroadcastAsync(script).GetAwaiter().GetResult();
     }
 
+    /// <summary>Execute a Luau script on all connected modules (async).</summary>
     public static async Task ExecuteAsync(string script)
     {
         _EnsureInit();
         await _BroadcastAsync(script).ConfigureAwait(false);
     }
 
+    /// <summary>Execute a Luau script on a specific module by PID.</summary>
     public static void Execute(int pid, string script)
     {
         _EnsureInit();
         _SendToAsync(pid, script).GetAwaiter().GetResult();
     }
 
+    /// <summary>Execute a Luau script on a specific module by PID (async).</summary>
     public static async Task ExecuteAsync(int pid, string script)
     {
         _EnsureInit();
         await _SendToAsync(pid, script).ConfigureAwait(false);
     }
 
+    /// <summary>Set the maximum FPS for all connected modules.</summary>
     public static void SetMaxFps(int fps) => _SendSetting("Max-Fps", fps.ToString());
+
+    /// <summary>Enable or disable FPS unlock for all connected modules.</summary>
     public static void SetUnlockFps(bool enabled) => _SendSetting("Unlock-Fps", enabled ? "true" : "false");
+
+    /// <summary>Enable or disable auto-execute for all connected modules.</summary>
     public static void SetAutoExecute(bool enabled) => _SendSetting("Auto-Execute", enabled ? "true" : "false");
+
+    /// <summary>Enable or disable console redirect for all connected modules.</summary>
     public static void SetConsoleRedirect(bool enabled) => _SendSetting("Console-Redirect", enabled ? "true" : "false");
+
+    /// <summary>
+    /// Set the console filter for all connected modules.
+    /// Values: "MESSAGE_NONE", "MESSAGE_OUTPUT", "MESSAGE_WARN", "MESSAGE_ERROR"
+    /// </summary>
     public static void SetConsoleFilter(string filter) => _SendSetting("Console-Filter", filter);
 
     private class _ModuleClient
