@@ -196,37 +196,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>DEL "$(TargetDir)cef.pak" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.BrowserSubprocess.Core.dll" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.BrowserSubprocess.Core.pdb" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.BrowserSubprocess.exe" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.BrowserSubprocess.pdb" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.Core.dll" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.Core.pdb" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.Core.xml" 2&gt;NUL
-DEL "$(TargetDir)debug.log" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.dll" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.pdb" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.Wpf.dll" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.Wpf.pdb" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.Wpf.XML" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.XML" 2&gt;NUL
-DEL "$(TargetDir)cef_100_percent.pak" 2&gt;NUL
-DEL "$(TargetDir)cef_200_percent.pak" 2&gt;NUL
-DEL "$(TargetDir)cef_extensions.pak" 2&gt;NUL
-DEL "$(TargetDir)chrome_elf.dll" 2&gt;NUL
-DEL "$(TargetDir)d3dcompiler_47.dll" 2&gt;NUL
-DEL "$(TargetDir)debug.log" 2&gt;NUL
-DEL "$(TargetDir)devtools_resources.pak" 2&gt;NUL
-DEL "$(TargetDir)icudtl.dat" 2&gt;NUL
-DEL "$(TargetDir)libcef.dll" 2&gt;NUL
-DEL "$(TargetDir)libEGL.dll" 2&gt;NUL
-DEL "$(TargetDir)libGLESv2.dll" 2&gt;NUL
-DEL "$(TargetDir)README.txt" 2&gt;NUL
-DEL "$(TargetDir)snapshot_blob.bin" 2&gt;NUL
-DEL "$(TargetDir)v8_context_snapshot.bin" 2&gt;NUL
-RMDIR /s /q "$(TargetDir)swiftshader" 2&gt;NUL
-RMDIR /s /q "$(TargetDir)locales" 2&gt;NUL</PostBuildEvent>
+    <PostBuildEvent>REM Keep CefSharp runtime files (including libcef.dll) in output.
+DEL "$(TargetDir)debug.log" 2&gt;NUL</PostBuildEvent>
   </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
