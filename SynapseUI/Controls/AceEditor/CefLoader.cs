@@ -12,7 +12,7 @@ namespace SynapseUI.Controls.AceEditor
     {
         public static bool Init()
         {
-            if (Cef.IsInitialized) return true;
+            if (Cef.IsInitialized == true) return true;
 
             var settings = new CefSettings
             {
@@ -22,7 +22,8 @@ namespace SynapseUI.Controls.AceEditor
                 MultiThreadedMessageLoop = true
             };
 
-            return Cef.Initialize(settings, performDependencyCheck: true, cefApp: null);
+            var success = Cef.Initialize(settings, performDependencyCheck: true, cefApp: null);
+            return success;
         }
     }
 
