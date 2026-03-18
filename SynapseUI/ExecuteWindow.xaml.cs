@@ -234,6 +234,12 @@ namespace SynapseUI
 
         private void ExecuteFileButton_Click(object sender, RoutedEventArgs e)
         {
+            if (Cosmic.ClientCount == 0)
+            {
+                attachInfoLabel.Content = "Not injected!";
+                return;
+            }
+
             var diag = Functions.Utils.Dialog.OpenFileDialog();
             switch (diag.ShowDialog())
             {
@@ -260,6 +266,12 @@ namespace SynapseUI
 
         private void ExecuteEditorButton_Click(object sender, RoutedEventArgs e)
         {
+            if (Cosmic.ClientCount == 0)
+            {
+                attachInfoLabel.Content = "Not injected!";
+                return;
+            }
+
             string contents = Editor?.GetText() ?? null;
             if (contents != null)
                 Cosmic.Execute(contents);
@@ -267,6 +279,12 @@ namespace SynapseUI
 
         private void ExecuteMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            if (Cosmic.ClientCount == 0)
+            {
+                attachInfoLabel.Content = "Not injected!";
+                return;
+            }
+
             if (scriptsListBox.SelectedIndex == -1)
                 return;
 

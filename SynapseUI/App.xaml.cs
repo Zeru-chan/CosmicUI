@@ -94,7 +94,7 @@ namespace SynapseUI
 
             if (!SKIP_CEF)
             {
-                if (CefLoader.Init())
+                if (!CefLoader.Init())
                 {
                     ThrowError(BaseException.CEF_NOT_FOUND);
                     return;

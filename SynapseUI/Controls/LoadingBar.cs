@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Media.Animation;
@@ -20,18 +20,17 @@ namespace SynapseUI.Controls
 
         public static readonly DependencyProperty ProgressProperty = DependencyProperty.Register(
                 "Progress", typeof(double), typeof(CustomLoadingBar),
-                new PropertyMetadata(
-                    new PropertyChangedCallback(ProgressChangedCallback)));
+                new PropertyMetadata(0.0, new PropertyChangedCallback(ProgressChangedCallback)));
 
         public CustomLoadingBar()
         {
+            DefaultStyleKey = typeof(CustomLoadingBar);
             Loaded += CustomLoadingBar_Loaded;
         }
 
         private void CustomLoadingBar_Loaded(object sender, RoutedEventArgs e)
         {
-            OutterBorder.Width = OutterBorder.ActualWidth;
-            InnerBorder.Width = (OutterBorder.Width - 2) * (Progress / 100);
+            SetProgress(Progress);
 
             AnimationStoryboard.Completed += (s, ee) =>
             {
@@ -61,7 +60,7 @@ namespace SynapseUI.Controls
 
         protected virtual void OnProgressChanged(ProgressChangedEventArgs e)
         {
-            if (InnerBorder != null)
+            if (InnerBorder != null && !Locked)
                 SetProgress(e.Value);
 
             RaiseEvent(e);
@@ -72,38 +71,49 @@ namespace SynapseUI.Controls
 
         public override void OnApplyTemplate()
         {
-            OutterBorder = (Border)GetTemplateChild("outterBar");
-            InnerBorder = (Border)GetTemplateChild("innerBar");
-
-            SetProgress(Progress);
-
             base.OnApplyTemplate();
+            OutterBorder = GetTemplateChild("outterBar") as Border;
+            InnerBorder = GetTemplateChild("innerBar") as Border;
         }
 
         public double PercentageParse(double perc)
         {
-            return (OutterBorder.Width - 2) * (perc / 100);
+            if (OutterBorder == null) return 0;
+
+            double baseWidth = OutterBorder.ActualWidth > 0 ? OutterBorder.ActualWidth : OutterBorder.Width;
+
+            if (double.IsNaN(baseWidth) || baseWidth <= 0)
+                return 0;
+
+            return Math.Max(0, (baseWidth - 2) * (perc / 100));
         }
 
         public void SetProgress(double value)
         {
-            InnerBorder.Width = PercentageParse(value);
-            Progress = value;
+            if (InnerBorder == null) return;
+
+            double newWidth = PercentageParse(value);
+            if (!double.IsNaN(newWidth))
+            {
+                InnerBorder.Width = newWidth;
+            }
         }
 
         public bool Locked { get; private set; } = false;
         public Storyboard AnimationStoryboard { get; private set; } = new Storyboard();
-
         private readonly TimeSpan Duration = TimeSpan.FromMilliseconds(500);
 
         private DoubleAnimation CreateAnimation(double value)
         {
+            double startWidth = InnerBorder.ActualWidth;
+            double endWidth = PercentageParse(value);
+
             var anim = new DoubleAnimation
             {
-                From = InnerBorder.Width,
-                To = PercentageParse(value),
+                From = double.IsNaN(startWidth) ? 0 : startWidth,
+                To = endWidth,
                 Duration = Duration,
-                EasingFunction = Animation.QuarticEase
+                EasingFunction = new QuarticEase { EasingMode = EasingMode.EaseOut }
             };
 
             Storyboard.SetTarget(anim, InnerBorder);
@@ -114,17 +124,12 @@ namespace SynapseUI.Controls
 
         public void AnimateProgress(double targetValue)
         {
-            if (InnerBorder is null || OutterBorder is null)
-                throw new ArgumentNullException("Inner or outter Border element not found, maybe Style is not applied?");
+            if (InnerBorder == null || OutterBorder == null)
+                return;
 
-            if (AnimationStoryboard.Children.Count > 0 || Locked)
+            if (Locked)
             {
-                var state = AnimationStoryboard.GetCurrentState();
-                if (state == ClockState.Filling)
-                {
-                    SetProgress(targetValue);
-                    return;
-                }
+                AnimationStoryboard.Stop();
             }
 
             var anim = CreateAnimation(targetValue);
@@ -160,12 +165,15 @@ namespace SynapseUI.Controls
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return (double)value - double.Parse((string)parameter);
+            if (value == null || parameter == null) return 0.0;
+            double val = (double)value;
+            double param = double.Parse(parameter.ToString(), CultureInfo.InvariantCulture);
+            return Math.Max(0, val - param);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException("Not supported");
+            throw new NotImplementedException();
         }
     }
 }
