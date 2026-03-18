@@ -23,7 +23,6 @@ namespace SynapseUI
 
         public static readonly List<string> ASSEMBLIES = new List<string>
         {
-            "sxlib",
             "CefSharp.Wpf",
             "CefSharp.Core",
             "CefSharp"
@@ -68,9 +67,7 @@ namespace SynapseUI
             if (!ASSEMBLIES.Contains(assemblyName.Name))
                 return null;
 
-            string probingPath = assemblyName.Name.Contains("sxlib") ?
-                Path.Combine(CURRENT_DIR, "bin", "sxlib") :
-                Path.Combine(CURRENT_DIR, "bin");
+            string probingPath = Path.Combine(CURRENT_DIR, "bin");
 
             string path = Path.Combine(probingPath, assemblyName.Name);
             path += !path.EndsWith(".dll") ? ".dll" : "";
@@ -93,12 +90,6 @@ namespace SynapseUI
                 return;
             }
 
-            if (ValidateSynapseInstall())
-            {
-                ThrowError(BaseException.INVALID_SYNAPSE_INSTALL);
-                return;
-            }
-
             ValidateCustomInstall();
 
             if (!SKIP_CEF)
@@ -112,6 +103,8 @@ namespace SynapseUI
 
             SETTINGS.Load();
 
+            Cosmic.Initialize().GetAwaiter().GetResult();
+
             new SplashScreen().Show();
         }
 
@@ -121,30 +114,6 @@ namespace SynapseUI
             var procs = Process.GetProcessesByName(name);
 
             return procs.Length != 1;
-        }
-
-        private bool ValidateSynapseInstall()
-        {
-            //if (!File.Exists(@".\S^X.exe"))
-            //    return true;
-
-            string[] folders = new string[]
-            {
-                "auth",
-                "autoexec",
-                "bin",
-                "scripts",
-                "workspace",
-                @".\bin\sxlib"
-            };
-
-            foreach (string folder in folders)
-            {
-                if (!Directory.Exists(folder))
-                    return true;
-            }
-
-            return false;
         }
 
         private void ValidateCustomInstall()
@@ -168,7 +137,6 @@ namespace SynapseUI
             downloader.Add(new FileEntry("Editor.html", "", "Monaco"));
             downloader.Add(new FileEntry("mode-lua.js", "ace", "Monaco/ace"));
             downloader.Add(new FileEntry("Updater.exe"));
-            downloader.Add(new FileEntry("SLInjector.dll", Path.Combine(CURRENT_DIR, "bin"), "UnknownPatch", false));
 
             if (!DEBUG)
                 VersionChecker.Run(downloader);
