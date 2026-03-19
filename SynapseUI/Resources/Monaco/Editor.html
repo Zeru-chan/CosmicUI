@@ -57,9 +57,9 @@
                 display: none;
             }
     </style>
-    <script src="ace/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/ace.js" type="text/javascript" charset="utf-8"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/ext-language_tools.min.js"></script>
-    <script src="ace/mode-lua.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/mode-lua.min.js"></script>
 </head>
 
 <body style="background-color: #2d2d2d">
@@ -120,7 +120,7 @@
     }
 
       var editor = ace.edit("editor");
-      ace.config.set("basePath", "ace/");
+      ace.config.set("basePath", ACE_CDN_BASE + "/");
       ace.config.set("themePath", ACE_CDN_BASE + "/");
     editor.setTheme("ace/theme/tomorrow_night_eighties");
     editor.session.setMode("ace/mode/lua");

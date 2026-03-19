@@ -78,8 +78,6 @@ namespace SynapseUI
                 return;
             }
 
-            ValidateCustomInstall();
-
             if (!SKIP_CEF)
             {
                 if (!CefLoader.Init())
@@ -99,31 +97,6 @@ namespace SynapseUI
             string name = AppDomain.CurrentDomain.FriendlyName.Replace(".exe", "");
             var procs = Process.GetProcessesByName(name);
             return procs.Length != 1;
-        }
-
-        private void ValidateCustomInstall()
-        {
-            string[] folders = new string[]
-            {
-                @".\bin\custom\",
-                @".\bin\custom\ace\"
-            };
-
-            foreach (string folder in folders)
-                if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
-
-            var downloader = new FileDownloader
-            {
-                BasePath = CURRENT_DIR + @"\bin\custom\",
-                BaseUrl = @"https://raw.githubusercontent.com/asunax-aaa/SynapseUI/master/SynapseUI/Resources/"
-            };
-
-            downloader.Add(new FileEntry("Editor.html", "", "Monaco"));
-            downloader.Add(new FileEntry("ace.js", "ace", "Monaco/ace"));
-            downloader.Add(new FileEntry("mode-lua.js", "ace", "Monaco/ace"));
-
-            downloader.Begin();
         }
 
         private void ThrowError(BaseException error, string helpInfo)
