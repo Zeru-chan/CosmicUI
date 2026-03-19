@@ -30,10 +30,11 @@ namespace SynapseUI
                 await Task.Delay(500);
                 OpenMainWindow();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                new ErrorWindow(new Types.BaseError(Exceptions.BaseException.GENERIC_EXCEPTION), ex.Message).Show();
-                Close();
+                statusLabel.Content = "Cosmic init failed, opening UI...";
+                await Task.Delay(400);
+                OpenMainWindow();
             }
         }
 

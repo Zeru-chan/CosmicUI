@@ -1,143 +1,321 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Editor</title>
-        <style type="text/css" media="screen">
-            body {
-                overflow: hidden;
-                margin: 0;
-            }
 
-            #editor {
-                margin: 0;
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                right: 0;
-            }
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style type="text/css" media="screen">
+        body {
+            overflow: hidden;
+        }
 
-            #fallbackEditor {
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                width: 100%;
-                height: 100%;
-                background: #1f1f1f;
-                color: #f0f0f0;
-                border: 0;
-                outline: none;
-                resize: none;
-                font-family: Consolas, monospace;
-                font-size: 13px;
-                padding: 10px;
-                box-sizing: border-box;
-            }
-        </style>
-        <script src="../ace/ace.js" type="text/javascript" charset="utf-8"></script>
-        <script src="../ace/ext-language_tools.js"></script>
-    </head>
-    <body style="background-color: #25282c">
-        <pre id="editor"></pre>
-        <script>
-            async function BindServiceAsync() {
-                await CefSharp.BindObjectAsync("cefServiceAsync");
-            }
+        #editor {
+            margin: 0;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
 
-            BindServiceAsync().then();
+        /* Custom Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
 
-            var GetText;
-            var SetText;
-            var ClearText;
-            var SetTheme;
-            var _setHotkeys;
+        ::-webkit-scrollbar-thumb {
+            background-color: #272727;
+            /* Black color */
+            border-radius: 10px;
+            border: 3px solid #000;
+            /* Adjust the thumb color and border */
+        }
 
-            function installHotkeys(getCurrentText) {
-                if (_setHotkeys) return;
-                _setHotkeys = true;
+        ::-webkit-scrollbar-track {
+            background: #333;
+            /* Dark background for the track */
+            border-radius: 10px;
+        }
 
-                document.addEventListener('keydown', async e => {
-                    if (e.key === 'S' && e.ctrlKey && e.shiftKey) {
-                        e.preventDefault();
-                        cefServiceAsync.saveAsRequest(getCurrentText());
-                    }
+        /* Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #272727 #333;
+        }
 
-                    if (e.ctrlKey) {
-                        if (e.key === 's') {
-                            e.preventDefault();
-                            cefServiceAsync.saveFileRequest(getCurrentText());
-                        } else if (e.key === 'o') {
-                            e.preventDefault();
-                            cefServiceAsync.openFileRequest();
+        /* IE and Edge */
+        .scrollbar {
+            -ms-overflow-style: -ms-autohiding-scrollbar;
+        }
+
+        .scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+    <script src="ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="ext-language_tools.js"></script>
+    <script src="mode-lua.js"></script>
+</head>
+
+<body style="background-color: #2d2d2d">
+    <pre id="editor"></pre>
+    <script>
+        ace.require("ace/ext/language_tools");
+        var editor = ace.edit("editor");
+        ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/')
+        editor.setTheme("ace/theme/tomorrow_night_eighties");
+        editor.session.setMode("ace/mode/lua");
+        editor.setOption("enableLiveAutocompletion", true);
+        editor.setOption("cursorStyle", "smooth");
+        editor.setShowPrintMargin(false);
+        editor.setOptions({
+            useWorker: false,
+            fontFamily: "JetBrains Mono",
+            fontSize: "10pt",
+            customScrollbar: true
+        });
+
+        editor.session.setUseSoftTabs(true);
+        // Comprehensive list of Synapse X and LuaU functions, globals, and variables
+        var luaUFunctions = [
+            // Synapse X functions
+            { label: "getgenv", kind: "function", detail: "Function", documentation: "Returns the environment that will be applied to each script ran by the executor.", insertText: "getgenv" },
+            { label: "getrenv", kind: "function", detail: "Function", documentation: "Returns the global environment for the LocalScript state.", insertText: "getrenv" },
+            { label: "getsenv", kind: "function", detail: "Function", documentation: "Returns the environment of `script`.", insertText: "getsenv" },
+            { label: "getreg", kind: "function", detail: "Function", documentation: "Returns the Lua registry.", insertText: "getreg" },
+            { label: "getgc", kind: "function", detail: "Function", documentation: "Returns all functions and userdata values within the GC. Passing true will also return tables.", insertText: "getgc" },
+            { label: "getinstances", kind: "function", detail: "Function", documentation: "Returns a list of all instances within the game.", insertText: "getinstances" },
+            { label: "getnilinstances", kind: "function", detail: "Function", documentation: "Returns a list of all instances parented to `nil` within the game.", insertText: "getnilinstances" },
+            { label: "getscripts", kind: "function", detail: "Function", documentation: "Returns a list of all local and module scripts within the game.", insertText: "getscripts" },
+            { label: "getloadedmodules", kind: "function", detail: "Function", documentation: "Returns all ModuleScripts loaded in the game.", insertText: "getloadedmodules" },
+            { label: "getconnections", kind: "function", detail: "Function", documentation: "Gets a list of connections to the specified signal or event.", insertText: "getconnections" },
+            { label: "firesignal", kind: "function", detail: "Function", documentation: "Fires all the connections connected to the signal with the provided arguments.", insertText: "firesignal" },
+            { label: "fireclickdetector", kind: "function", detail: "Function", documentation: "Fires the designated ClickDetector with provided distance. If distance isn't provided, it will default to 0.", insertText: "fireclickdetector" },
+            { label: "fireproximityprompt", kind: "function", detail: "Function", documentation: "Fires the designated ProximityPrompt with the given distance.", insertText: "fireproximityprompt" },
+            { label: "firetouchinterest", kind: "function", detail: "Function", documentation: "Fakes a .Touched event to ToTouch with `path`. The Toggle argument must be either 0 or 1 (for fire/un-fire). The ToTouch argument must have a child with class TouchTransmitter in order for this function to work.", insertText: "firetouchinterest" },
+            { label: "isnetworkowner", kind: "function", detail: "Function", documentation: "Returns true if the Part is owned by the player.", insertText: "isnetworkowner" },
+            { label: "gethiddenproperty", kind: "function", detail: "Function", documentation: "Returns the hidden property Property from Object. Errors if the property does not exist.", insertText: "gethiddenproperty" },
+            { label: "sethiddenproperty", kind: "function", detail: "Function", documentation: "Sets the hidden property `property` with `value` from `path`. Errors if the property does not exist.", insertText: "sethiddenproperty" },
+            { label: "setsimulationradius", kind: "function", detail: "Function", documentation: "Sets the player's SimulationRadius. If `max` is specified, it will set that as well.", insertText: "setsimulationradius" },
+            { label: "getidentity", kind: "function", detail: "Function", documentation: "Returns the identity for the current thread.", insertText: "getidentity" },
+            { label: "getthreadidentity", kind: "function", detail: "Function", documentation: "Returns the identity for the current thread.", insertText: "getthreadidentity" },
+            { label: "getthreadcontext", kind: "function", detail: "Function", documentation: "Returns the identity for the current thread.", insertText: "getthreadcontext" },
+            { label: "getscriptfromthread", kind: "function", detail: "Function", documentation: "Returns the script from thread even if the script does `script = nil`", insertText: "getscriptfromthread" },
+            { label: "gethui", kind: "function", detail: "Function", documentation: "Returns a holder made for GUIs to be parented in. It hides children from FindFirstChild attacks and does not fire game.DescendantAdded.", insertText: "gethui" },
+            { label: "sethidden", kind: "function", detail: "Function", documentation: "Sets whether a property is hidden or not using value. Returns old visibility status.", insertText: "sethidden" },
+            { label: "ishiddenproperty", kind: "function", detail: "Function", documentation: "Returns true if property is hidden, false is the property isn't hidden, nil if the property doesn't exist.", insertText: "ishiddenproperty" },
+            { label: "getproperties", kind: "function", detail: "Function", documentation: "Returns an array of property names on the provided Instance.", insertText: "getproperties" },
+            { label: "gethiddenproperties", kind: "function", detail: "Function", documentation: "Returns an array of hidden property names on said object.", insertText: "gethiddenproperties" },
+            { label: "getscriptbytecode", kind: "function", detail: "Function", documentation: "Gets the LuaU bytecode of a script.", insertText: "getscriptbytecode" },
+            { label: "dumpstring", kind: "function", detail: "Function", documentation: "Gets the LuaU bytecode of a script.", insertText: "dumpstring" },
+            { label: "getcallingscript", kind: "function", detail: "Function", documentation: "Gets the script that is calling this function.", insertText: "getcallingscript" },
+            { label: "getscriptclosure", kind: "function", detail: "Function", documentation: "Gets a bare function from the script passed. This is not the original function of the script and will not have upvalues/environment correctly defined.", insertText: "getscriptclosure" },
+            { label: "getscripthash", kind: "function", detail: "Function", documentation: "Returns a SHA384 hash of the script's bytecode. You can use this to detect changes of a script.", insertText: "getscripthash" },
+            { label: "getrawmetatable", kind: "function", detail: "Function", documentation: "Retrieve the metatable of the provided table irregardless of the metatable's `__metatable` field. Returns nil if it doesn't exist.", insertText: "getrawmetatable" },
+            { label: "setrawmetatable", kind: "function", detail: "Function", documentation: "Sets object's metatable to metatable even if the __metatable field exists in object's metatable.", insertText: "setrawmetatable" },
+            { label: "setreadonly", kind: "function", detail: "Function", documentation: "Sets object's read-only value to `toggle`.", insertText: "setreadonly" },
+            { label: "isreadonly", kind: "function", detail: "Function", documentation: "Returns the provided table's read-only condition.", insertText: "isreadonly" },
+            { label: "iswindowactive", kind: "function", detail: "Function", documentation: "Returns if the main window is in focus. This must return true for any other mouse/keyboard function to work.", insertText: "iswindowactive" },
+            { label: "keypress", kind: "function", detail: "Function", documentation: "Simulates a key press for the specified virtual-key code.", insertText: "keypress" },
+            { label: "keyrelease", kind: "function", detail: "Function", documentation: "Releases key on the keyboard.", insertText: "keyrelease" },
+            { label: "mouse1click", kind: "function", detail: "Function", documentation: "Simulates a full left mouse button press.", insertText: "mouse1click" },
+            { label: "mouse1press", kind: "function", detail: "Function", documentation: "Simulates a left mouse button press without releasing it.", insertText: "mouse1press" },
+            { label: "mouse1release", kind: "function", detail: "Function", documentation: "Simulates a left mouse button release.", insertText: "mouse1release" },
+            { label: "mouse2click", kind: "function", detail: "Function", documentation: "Simulates a full right mouse button press.", insertText: "mouse2click" },
+            { label: "mouse2press", kind: "function", detail: "Function", documentation: "Clicks down on the right mouse button.", insertText: "mouse2press" },
+            { label: "mouse2release", kind: "function", detail: "Function", documentation: "Simulates a right mouse button release.", insertText: "mouse2release" },
+            { label: "mousescroll", kind: "function", detail: "Function", documentation: "Scrolls the mouse wheel virtually by the provided integer pixels.", insertText: "mousescroll" },
+            { label: "mousemoverel", kind: "function", detail: "Function", documentation: "Moves the mouse cursor relatively to the current mouse position by coordinates `x` and `y`.", insertText: "mousemoverel" },
+            { label: "mousemoveabs", kind: "function", detail: "Function", documentation: "Moves your mouse to the `x` and `y` coordinates in pixels from top left of the main window.", insertText: "mousemoveabs" },
+            { label: "hookfunction", kind: "function", detail: "Function", documentation: "Hooks the first given function, replacing it with the second given function.", insertText: "hookfunction" },
+            { label: "newcclosure", kind: "function", detail: "Function", documentation: "Pushes a new CClosure that invokes the function upon call.", insertText: "newcclosure" },
+            { label: "iscclosure", kind: "function", detail: "Function", documentation: "Returns whether the provided function is a CClosure.", insertText: "iscclosure" },
+            { label: "checkclosure", kind: "function", detail: "Function", documentation: "Returns whether the provided function is a closure created by the exploit.", insertText: "checkclosure" },
+            { label: "checkcaller", kind: "function", detail: "Function", documentation: "Returns true if the current thread is a thread created by the executor.", insertText: "checkcaller" },
+            { label: "islclosure", kind: "function", detail: "Function", documentation: "Returns true if the function provided is an LClosure.", insertText: "islclosure" },
+            { label: "decompile", kind: "function", detail: "Function", documentation: "Decompiles Script and returns the decompiled script with timeout.", insertText: "decompile" },
+            { label: "readfile", kind: "function", detail: "Function", documentation: "Reads the contents of the file located at the specified path and returns it.", insertText: "readfile" },
+            { label: "writefile", kind: "function", detail: "Function", documentation: "Writes contents to the supplied path.", insertText: "writefile" },
+            { label: "appendfile", kind: "function", detail: "Function", documentation: "Appends content to file contents at specified path.", insertText: "appendfile" },
+            { label: "loadfile", kind: "function", detail: "Function", documentation: "Loads in the contents of a file as a chunk and returns it.", insertText: "loadfile" },
+            { label: "listfiles", kind: "function", detail: "Function", documentation: "Returns a table of files in folder.", insertText: "listfiles" },
+            { label: "isfile", kind: "function", detail: "Function", documentation: "Returns if path is a file or not.", insertText: "isfile" },
+            { label: "makefolder", kind: "function", detail: "Function", documentation: "Creates a new folder at provided path.", insertText: "makefolder" },
+            { label: "delfolder", kind: "function", detail: "Function", documentation: "Deletes the folder in supplied path.", insertText: "delfolder" },
+            { label: "delfile", kind: "function", detail: "Function", documentation: "Deletes the file in supplied path.", insertText: "delfile" },
+            { label: "setclipboard", kind: "function", detail: "Function", documentation: "Sets provided value to clipboard.", insertText: "setclipboard" },
+            { label: "WebSocket.connect", kind: "constructor", detail: "Constructor", documentation: "Constructs a new WebSocket object and connects to it.", insertText: "WebSocket.connect" },
+            // LuaU standard functions
+            { label: "print", kind: "function", detail: "Function", documentation: "Prints arguments to output.", insertText: "print" },
+            { label: "loadstring", kind: "function", detail: "Function", documentation: "Loads a string into luaU code.", insertText: "loadstring" },
+            { label: "warn", kind: "function", detail: "Function", documentation: "Prints arguments as warning.", insertText: "warn" },
+            { label: "assert", kind: "function", detail: "Function", documentation: "Verifies first argument is true.", insertText: "assert" },
+            { label: "error", kind: "function", detail: "Function", documentation: "Terminates script and prints error.", insertText: "error" },
+            { label: "type", kind: "function", detail: "Function", documentation: "Returns type of argument.", insertText: "type" },
+            { label: "typeof", kind: "function", detail: "Function", documentation: "Returns type of argument.", insertText: "typeof" },
+            { label: "pairs", kind: "function", detail: "Function", documentation: "Returns iterator for traversing table.", insertText: "pairs" },
+            { label: "ipairs", kind: "function", detail: "Function", documentation: "Returns iterator for traversing array-like table.", insertText: "ipairs" },
+            { label: "pcall", kind: "function", detail: "Function", documentation: "Calls function in protected mode.", insertText: "pcall" },
+            { label: "xpcall", kind: "function", detail: "Function", documentation: "Calls function in protected mode with custom error handler.", insertText: "xpcall" },
+            { label: "setmetatable", kind: "function", detail: "Function", documentation: "Sets metatable for table.", insertText: "setmetatable" },
+            { label: "getmetatable", kind: "function", detail: "Function", documentation: "Returns metatable of table.", insertText: "getmetatable" },
+            { label: "rawget", kind: "function", detail: "Function", documentation: "Gets value without invoking metamethods.", insertText: "rawget" },
+            { label: "rawset", kind: "function", detail: "Function", documentation: "Sets value without invoking metamethods.", insertText: "rawset" },
+            { label: "rawequal", kind: "function", detail: "Function", documentation: "Checks equal without invoking metamethods.", insertText: "rawequal" },
+            { label: "_G", kind: "variable", detail: "Global Variable", documentation: "Global environment table.", insertText: "_G" },
+            { label: "game", kind: "variable", detail: "Global Variable", documentation: "Represents Roblox game instance.", insertText: "game" },
+            { label: "workspace", kind: "variable", detail: "Global Variable", documentation: "Represents Roblox workspace.", insertText: "workspace" },
+            { label: "script", kind: "variable", detail: "Global Variable", documentation: "Represents script currently executed.", insertText: "script" }
+        ];
+
+        // Extract function names for highlighting
+        var functionNames = luaUFunctions.map(function (fn) { return fn.label; });
+
+        // Modify Lua mode to include function highlighting
+        ace.define("ace/mode/custom_lua_highlight_rules", ["require", "exports", "ace/lib/oop", "ace/mode/lua_highlight_rules"], function (require, exports) {
+            var oop = require("ace/lib/oop");
+            var LuaHighlightRules = require("ace/mode/lua_highlight_rules").LuaHighlightRules;
+
+            var CustomLuaHighlightRules = function () {
+                var keywordMapper = this.createKeywordMapper({
+                    "variable.language": "self",
+                    "keyword": "and|break|do|else|elseif|end|false|for|function|if|in|local|nil|not|or|repeat|return|then|true|until|while",
+                    "support.function": functionNames.join("|") + "|assert|collectgarbage|dofile|error|getfenv|getmetatable|ipairs|load|loadfile|loadstring|module|next|pairs|pcall|print|rawequal|rawget|rawset|require|select|setfenv|setmetatable|tonumber|tostring|type|unpack|xpcall",
+                    "constant.language": "true|false|nil",
+                    "support.function.library": "math.abs|math.ceil|math.floor|math.max|math.min|math.random|math.sqrt|string.byte|string.char|string.find|string.format|string.gsub|string.len|string.lower|string.match|string.rep|string.reverse|string.sub|string.upper|table.concat|table.insert|table.remove|table.sort",
+                    "constant.library": "_G|_VERSION|LUA_PATH|LUA_CPATH"
+                }, "identifier");
+
+                this.$rules = {
+                    "start": [
+                        {
+                            token: "comment",
+                            regex: "--.*$"
+                        },
+                        {
+                            token: "comment.start",
+                            regex: "--\\[\\[",
+                            next: "comment"
+                        },
+                        {
+                            token: "string",
+                            regex: '".*?"'
+                        },
+                        {
+                            token: "string",
+                            regex: "'.*?'"
+                        },
+                        {
+                            token: "constant.numeric",
+                            regex: "0[xX][0-9a-fA-F]+\\b"
+                        },
+                        {
+                            token: "constant.numeric",
+                            regex: "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)\\b"
+                        },
+                        {
+                            token: keywordMapper,
+                            regex: "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
+                        },
+                        {
+                            token: "keyword.operator",
+                            regex: "\\+|\\-|\\*|\\/|\\%|\\^|\\#|\\=|\\<|\\>|\\~|\\:|\\.|\\[|\\]"
+                        },
+                        {
+                            token: "paren.lparen",
+                            regex: "[\\(]"
+                        },
+                        {
+                            token: "paren.rparen",
+                            regex: "[\\)]"
+                        },
+                        {
+                            token: "text",
+                            regex: "\\s+"
                         }
-                    }
-                });
+                    ],
+                    "comment": [
+                        {
+                            token: "comment.end",
+                            regex: "\\]\\]",
+                            next: "start"
+                        },
+                        {
+                            defaultToken: "comment"
+                        }
+                    ]
+                };
+            };
+
+            oop.inherits(CustomLuaHighlightRules, LuaHighlightRules);
+            exports.CustomLuaHighlightRules = CustomLuaHighlightRules;
+        });
+
+        ace.define("ace/mode/custom_lua", ["require", "exports", "ace/lib/oop", "ace/mode/lua", "ace/mode/custom_lua_highlight_rules"], function (require, exports) {
+            var oop = require("ace/lib/oop");
+            var LuaMode = require("ace/mode/lua").Mode;
+            var CustomLuaHighlightRules = require("ace/mode/custom_lua_highlight_rules").CustomLuaHighlightRules;
+
+            var Mode = function () {
+                this.HighlightRules = CustomLuaHighlightRules;
+            };
+
+            oop.inherits(Mode, LuaMode);
+
+            (function () {
+                // additional mode methods here
+            }).call(Mode.prototype);
+
+            exports.Mode = Mode;
+        });
+
+        // Apply the custom mode
+        editor.session.setMode("ace/mode/custom_lua");
+
+        // Custom completer
+        var customCompleter = {
+            getCompletions: function (editor, session, pos, prefix, callback) {
+                callback(null, luaUFunctions.map(function (fn) {
+                    return {
+                        caption: fn.label,
+                        value: fn.insertText,
+                        meta: fn.kind,
+                        score: 1000
+                    };
+                }));
             }
+        };
 
-            if (typeof ace === 'undefined') {
-                const root = document.getElementById('editor');
-                const fallback = document.createElement('textarea');
-                fallback.id = 'fallbackEditor';
-                root.replaceWith(fallback);
+        // Add the custom completer to the editor
+        editor.completers = [customCompleter];
 
-                GetText = function () {
-                    return fallback.value;
-                }
+        // Synapse X internal functions
+        GetText = function () {
+            return editor.getValue();
+        }
 
-                SetText = function (x) {
-                    fallback.value = x || "";
-                }
+        SetText = function (x) {
+            editor.setValue(x);
+            editor.session.setValue(x);
+        }
 
-                ClearText = function () {
-                    fallback.value = "";
-                }
+        ClearText = function () {
+            editor.setValue("");
+        }
 
-                SetTheme = function () { };
+        SetTheme = function (th) {
+            editor.setTheme("ace/theme/" + th);
+        }
 
-                installHotkeys(() => fallback.value);
-                fallback.focus();
-            } else {
-                ace.config.set('basePath', '../ace');
-                ace.config.set('modePath', '../custom/ace');
-                ace.require("ace/ext/language_tools");
+        document.oncontextmenu = function () {
+            return true;
+        }
+    </script>
+</body>
 
-                var editor = ace.edit("editor");
-                editor.getSession().setUseWorker(false);
-                editor.setTheme("ace/theme/tomorrow_night_eighties");
-                editor.session.setMode("ace/mode/lua");
-                editor.setOption("enableLiveAutocompletion", true);
-                editor.setOption("cursorStyle", "smooth");
-                editor.setOption("readOnly", false);
-                editor.setShowPrintMargin(false);
-                document.getElementById('editor').style.fontSize = '13px';
-
-                GetText = function() {
-                    return editor.getValue();
-                }
-
-                SetText = function(x) {
-                    editor.setValue(x || "", 1);
-                }
-
-                ClearText = function() {
-                    editor.setValue("");
-                }
-
-                SetTheme = function(th) {
-                    editor.setTheme("ace/theme/" + th);
-                }
-
-                installHotkeys(() => editor.getValue());
-                editor.focus();
-            }
-
-            document.oncontextmenu = function() {
-                return false;
-            }
-        </script>
-    </body>
 </html>
