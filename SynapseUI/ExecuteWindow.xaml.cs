@@ -65,7 +65,9 @@ namespace SynapseUI
             if (!File.Exists(@".\bin\custom\Editor.html"))
                 return;
 
-            var editor = new AceEditor(App.CURRENT_DIR + @"\bin\custom\Editor.html", scriptsTabPanel);
+            var editorPath = Path.Combine(App.CURRENT_DIR, "bin", "custom", "Editor.html");
+            var editorUrl = new Uri(editorPath).AbsoluteUri;
+            var editor = new AceEditor(editorUrl, scriptsTabPanel);
             cefSharpGrid.Children.Add(editor);
 
             Editor = editor;

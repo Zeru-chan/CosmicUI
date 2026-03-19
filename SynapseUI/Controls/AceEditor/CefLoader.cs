@@ -18,8 +18,7 @@ namespace SynapseUI.Controls.AceEditor
             {
                 CachePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GPUCache"),
                 LogFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "debug.log"),
-                IgnoreCertificateErrors = true,
-                MultiThreadedMessageLoop = true
+                IgnoreCertificateErrors = true
             };
 
             var success = Cef.Initialize(settings, performDependencyCheck: true, cefApp: null);
