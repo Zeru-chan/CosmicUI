@@ -127,7 +127,7 @@ namespace SynapseUI
                 scripts.Add(new Script(entry.Key, scriptPath, entry.Value));
             }
 
-            TabSaver.SaveToXML(scripts, scriptsTabPanel.DefaultIndex);
+            TabSaver.SaveToXML(scripts, scriptsTabPanel.SelectedIndex);
         }
 
         private void ApplySavedTheme()
