@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -118,7 +120,12 @@ namespace SynapseUI.Functions.Web
                 try
                 {
                     client.DefaultRequestHeaders.UserAgent.ParseAdd("CosmicUI/1.0");
-                    var version = await client.GetStringAsync(CosmicInfoUrl).ConfigureAwait(false);
+                    var response = await client.GetStringAsync(CosmicInfoUrl).ConfigureAwait(false);
+                    if (string.IsNullOrWhiteSpace(response))
+                        return null;
+
+                    var payload = DeserializeVersionResponse(response);
+                    var version = payload?.Message?.Version;
                     return string.IsNullOrWhiteSpace(version) ? null : version.Trim();
                 }
                 catch
@@ -128,10 +135,33 @@ namespace SynapseUI.Functions.Web
             }
         }
 
+        private static CosmicInfoResponse DeserializeVersionResponse(string response)
+        {
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(response)))
+            {
+                var serializer = new DataContractJsonSerializer(typeof(CosmicInfoResponse));
+                return serializer.ReadObject(stream) as CosmicInfoResponse;
+            }
+        }
+
         public static string GetCurrentVersion()
         {
             var ver = typeof(App).Assembly.GetName().Version;
             return $"{ver.Major}.{ver.Minor}.{ver.Build}";
         }
+    }
+
+    [DataContract]
+    public class CosmicInfoResponse
+    {
+        [DataMember(Name = "message")]
+        public CosmicInfoMessage Message { get; set; }
+    }
+
+    [DataContract]
+    public class CosmicInfoMessage
+    {
+        [DataMember(Name = "version")]
+        public string Version { get; set; }
     }
 }

@@ -228,44 +228,56 @@
                 Style="{StaticResource MarginHoverButton}" />
         </DockPanel>
 
-        <StackPanel
-            Grid.Row="3"
-            Margin="0,0,130,0"
-            HorizontalAlignment="Right"
-            Orientation="Horizontal"
-            VerticalAlignment="Center">
-            <Ellipse
-                x:Name="attachStateIndicator"
-                Width="10"
-                Height="10"
-                Margin="0,0,6,0"
-                Fill="#FFE14B4B"
-                StrokeThickness="0" />
-            <Label
-                x:Name="attachStateLabel"
-                Margin="0,0,12,0"
-                Padding="0"
-                VerticalAlignment="Center"
-                Content="Not attached"
-                FontSize="11"
-                Foreground="#FFE1E1E1" />
-        </StackPanel>
-
-        <Button
-            x:Name="attachButton"
+        <DockPanel
             Grid.Row="3"
             Grid.ColumnSpan="2"
             Margin="0,0,7,0"
             HorizontalAlignment="Right"
-            Click="AttachButton_Click"
-            Content="Attach"
-            Style="{StaticResource MarginHoverButton}" />
+            LastChildFill="False"
+            VerticalAlignment="Center">
+            <Button
+                x:Name="attachButton"
+                Click="AttachButton_Click"
+                Content="Attach"
+                DockPanel.Dock="Right"
+                Style="{StaticResource MarginHoverButton}" />
 
-        <customControls:DisappearingLabel
-            x:Name="attachInfoLabel"
-            Grid.Row="3"
-            HorizontalAlignment="Right"
-            Content=""
-            FontSize="11.5" />
+            <Border
+                Margin="0,0,12,0"
+                VerticalAlignment="Center"
+                Background="#141A1F"
+                BorderBrush="#22313D"
+                BorderThickness="1"
+                CornerRadius="14"
+                DockPanel.Dock="Right"
+                Padding="10,6">
+                <DockPanel LastChildFill="False">
+                    <Ellipse
+                        x:Name="attachStateIndicator"
+                        Width="10"
+                        Height="10"
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        DockPanel.Dock="Left"
+                        Fill="#FFE14B4B"
+                        StrokeThickness="0" />
+                    <Label
+                        x:Name="attachStateLabel"
+                        Padding="0"
+                        VerticalAlignment="Center"
+                        Content="Not attached"
+                        FontSize="11"
+                        FontWeight="SemiBold"
+                        Foreground="#FFE1E1E1" />
+                </DockPanel>
+            </Border>
+
+            <customControls:DisappearingLabel
+                x:Name="attachInfoLabel"
+                Margin="0,0,12,0"
+                VerticalAlignment="Center"
+                Content=""
+                FontSize="11.5" />
+        </DockPanel>
     </Grid>
 </Window>
