@@ -135,11 +135,6 @@ namespace SynapseUI
             };
 
             downloader.Add(new FileEntry("Editor.html", "", "Monaco"));
-            downloader.Add(new FileEntry("mode-lua.js", "ace", "Monaco/ace"));
-            downloader.Add(new FileEntry("Updater.exe"));
-
-            if (!DEBUG)
-                VersionChecker.Run(downloader);
 
             downloader.Begin();
         }
