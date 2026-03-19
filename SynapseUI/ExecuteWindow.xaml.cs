@@ -186,9 +186,12 @@ namespace SynapseUI
 
         private void UpdateAttachIndicator()
         {
-            bool isAttached = Cosmic.ClientCount > 0;
+            int clientCount = Cosmic.ClientCount;
+            bool isAttached = clientCount > 0;
             attachStateIndicator.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isAttached ? "#FF45D06F" : "#FFE14B4B"));
-            attachStateLabel.Content = isAttached ? "Attached" : "Not attached";
+            attachStateLabel.Content = isAttached
+                ? (clientCount == 1 ? "Attached" : $"Attached ({clientCount})")
+                : "Not attached";
         }
 
         private void BeforeScriptTabDelete(object sender, EventArgs args)
