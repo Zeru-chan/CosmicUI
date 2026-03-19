@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +10,8 @@ namespace SynapseUI.Controls
     [TemplatePart(Name = "presenter", Type = typeof(ContentPresenter))]
     public class DisappearingLabel : Label, INotifyPropertyChanged
     {
+        private int _stateVersion;
+
         public TimeSpan Duration { get; set; } = TimeSpan.FromMilliseconds(1500);
 
         public bool IsActive
@@ -28,14 +31,27 @@ namespace SynapseUI.Controls
 
         public async Task SetActive(bool val)
         {
+            if (val)
+            {
+                Interlocked.Increment(ref _stateVersion);
+                IsActive = true;
+                return;
+            }
+
+            int version = _stateVersion;
             if (!val)
             {
                 await Task.Delay(Duration);
+                if (version != _stateVersion)
+                    return;
+
                 IsActive = false;
                 await Task.Delay(TimeSpan.FromMilliseconds(250));
+                if (version != _stateVersion)
+                    return;
+
                 Content = null;
             }
-            IsActive = val;
         }
 
         protected override void OnContentChanged(object oldContent, object newContent)

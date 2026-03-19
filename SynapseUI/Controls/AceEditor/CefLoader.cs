@@ -107,6 +107,7 @@ namespace SynapseUI.Controls.AceEditor
             }
 
             ScriptsPanel.AddScript(filename, path, true);
+            ScriptMap[filename] = contents;
             SetText(contents);
         }
 
@@ -140,10 +141,54 @@ namespace SynapseUI.Controls.AceEditor
             });
         }
 
-        public bool OpenScriptsFromXML() => true;
+        public bool OpenScriptsFromXML()
+        {
+            var storedScripts = TabSaver.LoadFromXML();
+            if (storedScripts?.Scripts == null || storedScripts.Scripts.Count == 0)
+                return true;
+
+            int index = 0;
+            foreach (var script in storedScripts.Scripts)
+            {
+                if (script == null || string.IsNullOrWhiteSpace(script.Filename))
+                    continue;
+
+                var tab = ScriptsPanel.AddScript(script.Filename, script.Path ?? string.Empty, true);
+                if (tab == null)
+                    continue;
+
+                ScriptMap[script.Filename] = script.Contents ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(script.Path))
+                    ScriptPathMap[script.Filename] = script.Path;
+
+                if (index == storedScripts.DefaultIndex)
+                    SetText(script.Contents ?? string.Empty);
+
+                index++;
+            }
+
+            if (ScriptsPanel.Items.Count > 0)
+            {
+                int safeIndex = storedScripts.DefaultIndex;
+                if (safeIndex < 0 || safeIndex >= ScriptsPanel.Items.Count)
+                    safeIndex = 0;
+
+                ScriptsPanel.SelectedIndex = safeIndex;
+                var selectedTab = ScriptsPanel.SelectedTab;
+                if (selectedTab != null && ScriptMap.TryGetValue(selectedTab.Header, out string contents))
+                    SetText(contents);
+            }
+
+            ScriptsPanel.DefaultIndex = ScriptsPanel.Items.Count;
+            return false;
+        }
 
         private void ScriptTabChanged(object sender, ScriptChangedEventArgs e)
         {
+            var previousTab = ScriptsPanel.LastItem;
+            if (previousTab != null && !string.IsNullOrWhiteSpace(previousTab.Header))
+                ScriptMap[previousTab.Header] = GetText();
+
             if (ScriptMap.TryGetValue(e.File, out string contents))
             {
                 SetText(contents);
