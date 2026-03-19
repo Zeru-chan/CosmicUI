@@ -38,8 +38,8 @@
                 box-sizing: border-box;
             }
         </style>
-        <script src="../ace/ace.js" type="text/javascript" charset="utf-8"></script>
-        <script src="../ace/ext-language_tools.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ext-language_tools.min.js"></script>
     </head>
     <body style="background-color: #25282c">
         <pre id="editor"></pre>
@@ -101,32 +101,13 @@
                 installHotkeys(() => fallback.value);
                 fallback.focus();
             } else {
-                ace.config.set('basePath', '../ace');
-                ace.config.set('modePath', '../custom/ace');
                 ace.require("ace/ext/language_tools");
-
-                var langTools = ace.require("ace/ext/language_tools");
-                var cosmicWords = [
-                    "print", "warn", "error", "task.wait", "task.spawn", "game", "workspace", "script",
-                    "local", "function", "end", "if", "then", "elseif", "else", "for", "while", "repeat", "until",
-                    "pairs", "ipairs", "pcall", "xpcall", "string", "table", "math", "coroutine", "typeof",
-                    "setmetatable", "getmetatable", "require", "Instance.new", "Vector3.new", "CFrame.new",
-                    "Cosmic.Execute", "Cosmic.Attach", "Cosmic.SetMaxFps", "Cosmic.SetUnlockFps"
-                ];
-
-                var cosmicCompleter = {
-                    getCompletions: function(editor, session, pos, prefix, callback) {
-                        callback(null, cosmicWords.map(function(w) {
-                            return { caption: w, value: w, meta: "cosmic" };
-                        }));
-                    }
-                };
 
                 var editor = ace.edit("editor");
                 editor.getSession().setUseWorker(false);
                 editor.setTheme("ace/theme/tomorrow_night_eighties");
                 editor.session.setMode("ace/mode/lua");
-                editor.setOption("enableBasicAutocompletion", [cosmicCompleter]);
+                editor.setOption("enableBasicAutocompletion", true);
                 editor.setOption("enableLiveAutocompletion", true);
                 editor.setOption("cursorStyle", "smooth");
                 editor.setOption("readOnly", false);
