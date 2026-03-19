@@ -56,7 +56,6 @@ namespace SynapseUI.Settings
     public class AppSettings : INotifyPropertyChanged
     {
         private bool roundedCorners = false;
-        private bool unlockFps;
         private bool clearConfirmation = true;
         private bool closeConfirmation = true;
         private bool topMost;
@@ -71,13 +70,6 @@ namespace SynapseUI.Settings
                 roundedCorners = value;
                 RoundedValue = value ? 15 : 0;
             }
-        }
-
-        [XmlElement("UnlockFPS")]
-        public bool UnlockFPS
-        {
-            get => unlockFps;
-            set => unlockFps = value;
         }
 
         [XmlElement("ClearConfirmation")]
@@ -127,7 +119,6 @@ namespace SynapseUI.Settings
         {
             var settings = Settings.Load();
             RoundedCorners = settings.RoundedCorners;
-            UnlockFPS = settings.UnlockFPS;
             ClearConfirmation = settings.ClearConfirmation;
             CloseConfirmation = settings.CloseConfirmation;
             TopMost = settings.TopMost;
@@ -144,7 +135,6 @@ namespace SynapseUI.Settings
             if (options == null)
                 return;
 
-            options.UnlockFPS = UnlockFPS;
             options.ClearConfirmation = ClearConfirmation;
             options.CloseConfirmation = CloseConfirmation;
             options.TopMost = TopMost;
@@ -155,7 +145,6 @@ namespace SynapseUI.Settings
             if (options == null)
                 return;
 
-            UnlockFPS = options.UnlockFPS;
             ClearConfirmation = options.ClearConfirmation;
             CloseConfirmation = options.CloseConfirmation;
             TopMost = options.TopMost;

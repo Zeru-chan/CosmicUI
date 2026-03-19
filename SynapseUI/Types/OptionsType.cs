@@ -17,8 +17,6 @@ namespace SynapseUI.Types
             }
         }
 
-        public bool UnlockFPS { get; set; }
-
         private bool _topMost;
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -57,7 +55,6 @@ namespace SynapseUI.Types
     {
         public OptionsEntryList() : base()
         {
-            Add(new OptionEntry("Unlock FPS", nameof(Options.UnlockFPS)));
             Add(new OptionEntry("Clear Editor Prompt", nameof(Options.ClearConfirmation)));
             Add(new OptionEntry("File Closing Prompt", nameof(Options.CloseConfirmation)));
             Add(new OptionEntry("Top Most", nameof(Options.TopMost)));

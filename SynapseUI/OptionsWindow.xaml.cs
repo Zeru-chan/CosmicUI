@@ -95,11 +95,6 @@ namespace SynapseUI
             _options.SetProperty(entry.Name, e.Value);
             if (!_firstLoad)
             {
-                if (entry.Name == nameof(Options.UnlockFPS))
-                {
-                    Cosmic.SetUnlockFps(e.Value);
-                }
-
                 PersistSettings();
                 OnOptionChanged(new OptionChangedEventArgs(entry, e.Value));
             }

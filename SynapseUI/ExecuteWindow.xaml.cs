@@ -4,8 +4,10 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using SynapseUI.Types;
 using SynapseUI.Controls.AceEditor;
+using SynapseUI.Functions.Web;
 
 namespace SynapseUI
 {
@@ -25,6 +27,8 @@ namespace SynapseUI
         {
             InitializeComponent();
             App.SETTINGS.ApplyTo(SynOptions);
+            Cosmic.OnClientConnected += Cosmic_OnClientConnected;
+            Cosmic.OnClientDisconnected += Cosmic_OnClientDisconnected;
 
             if (Directory.Exists("./scripts"))
             {
@@ -46,12 +50,17 @@ namespace SynapseUI
                     scriptsListBox.Items.Add(file.Name);
             }
 
+            UpdateAttachIndicator();
+            _ = LoadVersionInfo();
+
             if (!App.SKIP_CEF)
                 LoadCefBrowser();
         }
 
         private void ExecuteWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            Cosmic.OnClientConnected -= Cosmic_OnClientConnected;
+            Cosmic.OnClientDisconnected -= Cosmic_OnClientDisconnected;
             SaveScriptTabs();
             OptionsWindow.DisposeMutex();
 
@@ -104,6 +113,9 @@ namespace SynapseUI
 
         private void SaveScriptTabs()
         {
+            if (Editor == null || scriptsTabPanel.SelectedItem == null)
+                return;
+
             var scripts = new List<Script>();
 
             var selectedTab = (Controls.ScriptTab)scriptsTabPanel.SelectedItem;
@@ -146,6 +158,37 @@ namespace SynapseUI
             attachInfoLabel.Content = message;
             await attachInfoLabel.SetActive(true);
             await attachInfoLabel.SetActive(false);
+        }
+
+        private async Task LoadVersionInfo()
+        {
+            headerVersionLabel.Content = "vloading...";
+
+            var version = await VersionChecker.GetLatestVersionAsync();
+            if (!string.IsNullOrWhiteSpace(version))
+            {
+                headerVersionLabel.Content = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}";
+                return;
+            }
+
+            headerVersionLabel.Content = $"v{VersionChecker.GetCurrentVersion()}";
+        }
+
+        private void Cosmic_OnClientConnected(int pid)
+        {
+            Dispatcher.BeginInvoke(new Action(UpdateAttachIndicator));
+        }
+
+        private void Cosmic_OnClientDisconnected(int pid)
+        {
+            Dispatcher.BeginInvoke(new Action(UpdateAttachIndicator));
+        }
+
+        private void UpdateAttachIndicator()
+        {
+            bool isAttached = Cosmic.ClientCount > 0;
+            attachStateIndicator.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isAttached ? "#FF45D06F" : "#FFE14B4B"));
+            attachStateLabel.Content = isAttached ? "Attached" : "Not attached";
         }
 
         private void BeforeScriptTabDelete(object sender, EventArgs args)
@@ -247,6 +290,7 @@ namespace SynapseUI
                 }
 
                 var results = Cosmic.Attach();
+                UpdateAttachIndicator();
                 if (results.Count == 0)
                 {
                     _ = ShowAttachStatus("Already injected.");

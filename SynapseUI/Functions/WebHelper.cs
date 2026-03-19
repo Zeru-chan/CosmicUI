@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Net;
-using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SynapseUI.Functions.Web
 {
@@ -63,7 +64,7 @@ namespace SynapseUI.Functions.Web
 
             var entries = new List<(string url, string path)>();
             foreach (var entry in FileEntries)
-            {       
+            {
                 string url = BaseUrl + entry.Url + "/" + entry.Filename;
                 string path = entry.RelativePath ? Path.Combine(BasePath, entry.Path, entry.Filename) :
                     Path.Combine(entry.Path, entry.Filename);
@@ -105,26 +106,24 @@ namespace SynapseUI.Functions.Web
 
     public static class VersionChecker
     {
-        public static (string Version, string Url) GetLatestVersion()
-        {
-            using (WebClient client = new WebClient())
-            {
-                client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) LATEST_VER.php Synapse UI (asunax#5833)");
+        private const string CosmicInfoUrl = "https://auth.cosmic.best/info";
 
-                string[] contents;
+        public static async Task<string> GetLatestVersionAsync()
+        {
+            SecurityProtocolPatch.Init();
+
+            using (var client = new HttpClient())
+            {
                 try
                 {
-                    contents = client.DownloadString("https://iphqne.com/asunax/latest-version.php").Split('|');
+                    client.DefaultRequestHeaders.UserAgent.ParseAdd("CosmicUI/1.0");
+                    var version = await client.GetStringAsync(CosmicInfoUrl).ConfigureAwait(false);
+                    return string.IsNullOrWhiteSpace(version) ? null : version.Trim();
                 }
                 catch
                 {
-                    return ("", "");
+                    return null;
                 }
-
-                if (contents.Length != 2)
-                    return ("", "");
-
-                return (contents[0], contents[1]);
             }
         }
 
