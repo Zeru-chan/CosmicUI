@@ -57,14 +57,22 @@
                 display: none;
             }
     </style>
-    <script src="ace.js" type="text/javascript" charset="utf-8"></script>
-    <script src="ext-language_tools.js"></script>
-    <script src="mode-lua.js"></script>
+    <script src="ace/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="ace/ext-language_tools.js"></script>
+    <script src="ace/mode-lua.js"></script>
 </head>
 
 <body style="background-color: #2d2d2d">
   <pre id="editor"></pre>
   <script>
+    async function BindServiceAsync() {
+      if (window.CefSharp && typeof CefSharp.BindObjectAsync === "function") {
+        await CefSharp.BindObjectAsync("cefServiceAsync");
+      }
+    }
+
+    BindServiceAsync().then();
+
     ace.require("ace/ext/language_tools");
       var editor = ace.edit("editor");
       ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/')
@@ -369,8 +377,7 @@
     }
 
     SetText = function (x) {
-      editor.setValue(x);
-      editor.session.setValue(x);
+      editor.setValue(x, 1);
     }
 
     ClearText = function () {
@@ -384,6 +391,26 @@
     document.oncontextmenu = function () {
       return true;
     }
+
+    document.addEventListener("keydown", function (e) {
+      if (!window.cefServiceAsync) {
+        return;
+      }
+
+      if (e.ctrlKey && e.shiftKey && (e.key === "S" || e.key === "s")) {
+        e.preventDefault();
+        cefServiceAsync.saveAsRequest(editor.getValue());
+        return;
+      }
+
+      if (e.ctrlKey && (e.key === "s" || e.key === "S")) {
+        e.preventDefault();
+        cefServiceAsync.saveFileRequest(editor.getValue());
+      } else if (e.ctrlKey && (e.key === "o" || e.key === "O")) {
+        e.preventDefault();
+        cefServiceAsync.openFileRequest();
+      }
+    });
   </script>
 </body>
 
