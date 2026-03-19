@@ -112,6 +112,18 @@ namespace SynapseUI
             foreach (string folder in folders)
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
+
+            var downloader = new FileDownloader
+            {
+                BasePath = CURRENT_DIR + @"\bin\custom\",
+                BaseUrl = @"https://raw.githubusercontent.com/asunax-aaa/SynapseUI/master/SynapseUI/Resources/"
+            };
+
+            downloader.Add(new FileEntry("Editor.html", "", "Monaco"));
+            downloader.Add(new FileEntry("ace.js", "ace", "Monaco/ace"));
+            downloader.Add(new FileEntry("mode-lua.js", "ace", "Monaco/ace"));
+
+            downloader.Begin();
         }
 
         private void ThrowError(BaseException error, string helpInfo)

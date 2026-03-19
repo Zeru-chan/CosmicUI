@@ -57,9 +57,9 @@
                 display: none;
             }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/ace.js" type="text/javascript" charset="utf-8" onerror="this.onerror=null;this.src='ace.js';"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/ext-language_tools.min.js" onerror="this.onerror=null;this.src='ext-language_tools.js';"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/mode-lua.min.js" onerror="this.onerror=null;this.src='mode-lua.js';"></script>
+    <script src="ace/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/ext-language_tools.min.js"></script>
+    <script src="ace/mode-lua.js"></script>
 </head>
 
 <body style="background-color: #2d2d2d">
@@ -109,25 +109,27 @@
         script.src = themeUrl;
         script.setAttribute("data-ace-theme", themeName);
         script.onload = resolve;
-        script.onerror = function () {
-          var fallbackScript = document.createElement("script");
-          fallbackScript.src = "theme-" + themeName + ".js";
-          fallbackScript.setAttribute("data-ace-theme", themeName);
-          fallbackScript.onload = resolve;
-          fallbackScript.onerror = reject;
-          document.head.appendChild(fallbackScript);
-        };
+        script.onerror = reject;
         document.head.appendChild(script);
       });
     }
 
-    ace.require("ace/ext/language_tools");
+    if (!window.ace) {
+      document.body.innerHTML = "<pre style='color:#fff;padding:16px;font-family:JetBrains Mono, monospace;'>Failed to load ACE editor.</pre>";
+      throw new Error("ACE failed to load");
+    }
+
       var editor = ace.edit("editor");
-      ace.config.set("basePath", ACE_CDN_BASE + "/");
+      ace.config.set("basePath", "ace/");
       ace.config.set("themePath", ACE_CDN_BASE + "/");
     editor.setTheme("ace/theme/tomorrow_night_eighties");
     editor.session.setMode("ace/mode/lua");
-    editor.setOption("enableLiveAutocompletion", true);
+    try {
+      ace.require("ace/ext/language_tools");
+      editor.setOption("enableLiveAutocompletion", true);
+    } catch (e) {
+      editor.setOption("enableLiveAutocompletion", false);
+    }
     editor.setOption("cursorStyle", "smooth");
     editor.setShowPrintMargin(false);
       editor.setOptions({
@@ -437,6 +439,8 @@
       var themeName = normalizeThemeName(th);
       ensureThemeLoaded(themeName).then(function () {
         editor.setTheme("ace/theme/" + themeName);
+      }).catch(function () {
+        editor.setTheme("ace/theme/tomorrow_night_eighties");
       });
     }
 
