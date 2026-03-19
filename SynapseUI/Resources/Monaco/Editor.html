@@ -57,9 +57,9 @@
                 display: none;
             }
     </style>
-    <script src="ace/ace.js" type="text/javascript" charset="utf-8"></script>
-    <script src="ace/ext-language_tools.js"></script>
-    <script src="ace/mode-lua.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/ace.js" type="text/javascript" charset="utf-8" onerror="this.onerror=null;this.src='ace.js';"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/ext-language_tools.min.js" onerror="this.onerror=null;this.src='ext-language_tools.js';"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/mode-lua.min.js" onerror="this.onerror=null;this.src='mode-lua.js';"></script>
 </head>
 
 <body style="background-color: #2d2d2d">
@@ -73,9 +73,58 @@
 
     BindServiceAsync().then();
 
+    var ACE_CDN_BASE = "https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3";
+    var THEME_URLS = {
+      "tomorrow_night_eighties": "https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/theme-tomorrow_night_eighties.min.js",
+      "monokai": "https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/theme-monokai.min.js",
+      "github": "https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/theme-github.min.js",
+      "twilight": "https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/theme-twilight.min.js",
+      "solarized_dark": "https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/theme-solarized_dark.min.js",
+      "solarized_light": "https://cdnjs.cloudflare.com/ajax/libs/ace/1.43.3/theme-solarized_light.min.js"
+    };
+
+    function normalizeThemeName(theme) {
+      var normalized = (theme || "tomorrow_night_eighties")
+        .replace(/^ace\/theme\//, "")
+        .replace(/^theme-/, "")
+        .replace(/\.min\.js$/, "")
+        .replace(/\.js$/, "");
+
+      if (!THEME_URLS[normalized]) {
+        return "tomorrow_night_eighties";
+      }
+
+      return normalized;
+    }
+
+    function ensureThemeLoaded(themeName) {
+      var themeUrl = THEME_URLS[themeName];
+      var existingTag = document.querySelector('script[data-ace-theme=\"' + themeName + '\"]');
+      if (existingTag) {
+        return Promise.resolve();
+      }
+
+      return new Promise(function (resolve, reject) {
+        var script = document.createElement("script");
+        script.src = themeUrl;
+        script.setAttribute("data-ace-theme", themeName);
+        script.onload = resolve;
+        script.onerror = function () {
+          var fallbackScript = document.createElement("script");
+          fallbackScript.src = "theme-" + themeName + ".js";
+          fallbackScript.setAttribute("data-ace-theme", themeName);
+          fallbackScript.onload = resolve;
+          fallbackScript.onerror = reject;
+          document.head.appendChild(fallbackScript);
+        };
+        document.head.appendChild(script);
+      });
+    }
+
     ace.require("ace/ext/language_tools");
       var editor = ace.edit("editor");
-      ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/')
+      ace.config.set("basePath", ACE_CDN_BASE + "/");
+      ace.config.set("themePath", ACE_CDN_BASE + "/");
     editor.setTheme("ace/theme/tomorrow_night_eighties");
     editor.session.setMode("ace/mode/lua");
     editor.setOption("enableLiveAutocompletion", true);
@@ -385,7 +434,10 @@
     }
 
     SetTheme = function (th) {
-      editor.setTheme("ace/theme/" + th);
+      var themeName = normalizeThemeName(th);
+      ensureThemeLoaded(themeName).then(function () {
+        editor.setTheme("ace/theme/" + themeName);
+      });
     }
 
     document.oncontextmenu = function () {
