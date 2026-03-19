@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
@@ -23,7 +23,7 @@ namespace SynapseUI.Controls
             get => window;
             set
             {
-                baseHeight = value.Height;
+                baseHeight = double.IsNaN(value.Height) ? value.ActualHeight : value.Height;
                 window = value;
             }
         }
@@ -55,7 +55,7 @@ namespace SynapseUI.Controls
             IsDropped = !IsDropped;
             var anim = new DoubleAnimation
             {
-                From = Window.Height,
+                From = Window.ActualHeight,
                 To = IsDropped ? TargetHeight : baseHeight,
                 Duration = Duration,
                 EasingFunction = Animation.QuarticEase

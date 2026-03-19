@@ -66,11 +66,6 @@
     <ApplicationIcon>Resources\logo_icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="sxlib, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>sxlib\sxlib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -90,14 +85,15 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Controls\ScriptTab.cs" />
+    <Compile Include="Cosmic.cs" />
     <Compile Include="Controls\DisappearingLabel.cs" />
     <Compile Include="Controls\DropDownButton.cs" />
     <Compile Include="Controls\LoadingBar.cs" />
     <Compile Include="Controls\OptionTab.cs" />
     <Compile Include="Controls\SliderToggle.cs" />
     <Compile Include="Controls\AceEditor\TabSaver.cs" />
+    <Compile Include="Controls\AceEditor\AceEditorTheme.cs" />
     <Compile Include="Functions\AppSettings.cs" />
-    <Compile Include="Types\ScriptHubEntriesType.cs" />
     <Page Include="ConfirmationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -146,8 +142,6 @@
       <DependentUpon>ErrorWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Functions\WebHelper.cs" />
-    <Compile Include="Types\ErrorType.cs" />
-    <Compile Include="Functions\EventMapping\EventMap.cs" />
     <Compile Include="Functions\HelpInfoParser.cs" />
     <Compile Include="Functions\Exceptions.cs" />
     <Compile Include="Types\BaseErrorType.cs" />
@@ -201,48 +195,10 @@
   <ItemGroup>
     <Resource Include="Resources\logo_icon.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\ScriptHub\dark_dex.png" />
-    <Resource Include="Resources\ScriptHub\esp.png" />
-    <Resource Include="Resources\ScriptHub\remote_spy.png" />
-    <Resource Include="Resources\ScriptHub\script_dumper.png" />
-    <Content Include="Resources\UnknownPatch\SLInjector.dll" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>DEL "$(TargetDir)sxlib.dll" 2&gt;NUL
-DEL "$(TargetDir)sxlib.xml" 2&gt;NUL
-DEL "$(TargetDir)cef.pak" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.BrowserSubprocess.Core.dll" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.BrowserSubprocess.Core.pdb" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.BrowserSubprocess.exe" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.BrowserSubprocess.pdb" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.Core.dll" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.Core.pdb" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.Core.xml" 2&gt;NUL
-DEL "$(TargetDir)debug.log" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.dll" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.pdb" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.Wpf.dll" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.Wpf.pdb" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.Wpf.XML" 2&gt;NUL
-DEL "$(TargetDir)CefSharp.XML" 2&gt;NUL
-DEL "$(TargetDir)cef_100_percent.pak" 2&gt;NUL
-DEL "$(TargetDir)cef_200_percent.pak" 2&gt;NUL
-DEL "$(TargetDir)cef_extensions.pak" 2&gt;NUL
-DEL "$(TargetDir)chrome_elf.dll" 2&gt;NUL
-DEL "$(TargetDir)d3dcompiler_47.dll" 2&gt;NUL
-DEL "$(TargetDir)debug.log" 2&gt;NUL
-DEL "$(TargetDir)devtools_resources.pak" 2&gt;NUL
-DEL "$(TargetDir)icudtl.dat" 2&gt;NUL
-DEL "$(TargetDir)libcef.dll" 2&gt;NUL
-DEL "$(TargetDir)libEGL.dll" 2&gt;NUL
-DEL "$(TargetDir)libGLESv2.dll" 2&gt;NUL
-DEL "$(TargetDir)README.txt" 2&gt;NUL
-DEL "$(TargetDir)snapshot_blob.bin" 2&gt;NUL
-DEL "$(TargetDir)v8_context_snapshot.bin" 2&gt;NUL
-RMDIR /s /q "$(TargetDir)swiftshader" 2&gt;NUL
-RMDIR /s /q "$(TargetDir)locales" 2&gt;NUL</PostBuildEvent>
+    <PostBuildEvent>REM Keep CefSharp runtime files (including libcef.dll) in output.
+DEL "$(TargetDir)debug.log" 2&gt;NUL</PostBuildEvent>
   </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
