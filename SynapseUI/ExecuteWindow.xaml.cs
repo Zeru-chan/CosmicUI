@@ -190,8 +190,8 @@ namespace SynapseUI
             bool isAttached = clientCount > 0;
             attachStateIndicator.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(isAttached ? "#FF45D06F" : "#FFE14B4B"));
             attachStateLabel.Content = isAttached
-                ? $"Attached to {clientCount} client{(clientCount == 1 ? string.Empty : "s")}"
-                : "Waiting for attach";
+                ? (clientCount == 1 ? "Attached" : $"Attached ({clientCount})")
+                : "Not attached";
         }
 
         private void BeforeScriptTabDelete(object sender, EventArgs args)
