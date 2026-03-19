@@ -48,8 +48,7 @@
             Background="{StaticResource DraggableBarBackground}"
             MouseLeftButtonDown="DraggableTop_MouseLeftButtonDown">
             <DockPanel
-                Margin="45,0,0,0"
-                HorizontalAlignment="Left"
+                HorizontalAlignment="Center"
                 LastChildFill="False">
                 <Label
                     Height="30"
@@ -64,7 +63,7 @@
                     Content="vloading..."
                     FontSize="11"
                     Foreground="#FFB9BBBE"
-                    Style="{StaticResource DefaultCenterVertText}" />
+                    Style="{StaticResource DefaultVertText}" />
             </DockPanel>
 
             <Image Source="Resources/logo.png" Style="{StaticResource LogoImage}" />
