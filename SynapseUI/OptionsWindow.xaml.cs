@@ -10,8 +10,6 @@ using System.Threading;
 using SynapseUI.Types;
 using SynapseUI.Functions.Utils;
 using SynapseUI.Controls.AceEditor;
-using System.IO;
-using System.Linq;
 
 namespace SynapseUI
 {
@@ -20,26 +18,25 @@ namespace SynapseUI
         public static Mutex RobloxMutex;
 
         private static bool _mutexActive = false;
-        private static string _theme = "Tomorrow-night-eighties";
 
         public OptionsEntryList OptionsList { get; } = new OptionsEntryList();
 
         private bool _firstLoad = true;
         private readonly AceEditor _aceEditor;
-
-        private readonly Options _tempOptions = new Options();
+        private readonly Options _options;
 
         public OptionsWindow(ExecuteWindow main, AceEditor editor)
         {
             InitializeComponent();
             _aceEditor = editor;
+            _options = main.SynOptions;
 
             Left = main.Left + (main.ActualWidth - Width) / 2;
             Top = main.Top + 10;
 
             Closing += (s, e) =>
             {
-                App.SETTINGS.Save();
+                PersistSettings();
             };
         }
 
@@ -48,10 +45,16 @@ namespace SynapseUI
             AnimateShow();
 
             mutexToggle.IsToggled = _mutexActive;
-            aceThemesComboBox.SelectedItem = _theme;
+            aceThemesComboBox.SelectedItem = App.SETTINGS.AceTheme;
             roundedCornerToggle.IsToggled = App.SETTINGS.RoundedCorners;
 
             _firstLoad = false;
+        }
+
+        private void PersistSettings()
+        {
+            App.SETTINGS.CaptureFrom(_options);
+            App.SETTINGS.Save();
         }
 
         private void AnimateShow()
@@ -77,22 +80,6 @@ namespace SynapseUI
             }
         }
 
-        public static string[] GetCosmicProcesses()
-        {
-            string[] excluded = new string[]
-            {
-                "CefSharp.BrowserSubprocess.exe",
-                "lua-decomp.exe"
-            };
-
-            var files = new DirectoryInfo(@".\bin\").GetFiles("*.exe")
-                .Where(f => !excluded.Contains(f.Name))
-                .Select(f => f.Name.Substring(0, f.Name.Length - 4))
-                .ToArray();
-
-            return files;
-        }
-
         public event OptionChangedEventHandler OptionChanged;
 
         protected virtual void OnOptionChanged(OptionChangedEventArgs e)
@@ -105,7 +92,7 @@ namespace SynapseUI
             var slider = sender as Controls.SliderToggle;
             OptionEntry entry = (OptionEntry)slider.DataContext;
 
-            _tempOptions.SetProperty(entry.Name, e.Value);
+            _options.SetProperty(entry.Name, e.Value);
             if (!_firstLoad)
             {
                 if (entry.Name == nameof(Options.UnlockFPS))
@@ -113,8 +100,19 @@ namespace SynapseUI
                     Cosmic.SetUnlockFps(e.Value);
                 }
 
+                PersistSettings();
                 OnOptionChanged(new OptionChangedEventArgs(entry, e.Value));
             }
+        }
+
+        private void OptionToggle_Loaded(object sender, RoutedEventArgs e)
+        {
+            var slider = sender as Controls.SliderToggle;
+            OptionEntry entry = (OptionEntry)slider?.DataContext;
+            if (slider == null || entry == null)
+                return;
+
+            slider.IsToggled = _options.GetProperty(entry.Name);
         }
 
         private void Execute_ScriptButton(object sender, MouseButtonEventArgs e)
@@ -127,18 +125,6 @@ namespace SynapseUI
             foreach (var process in processes)
             {
                 process.Kill();
-            }
-        }
-
-        private void KillSynapseButton_Click(object sender, RoutedEventArgs e)
-        {
-            var procs = GetCosmicProcesses();
-            foreach (var proc in procs)
-            {
-                foreach (var process in Process.GetProcessesByName(proc))
-                {
-                    process.Kill();
-                }
             }
         }
 
@@ -165,27 +151,32 @@ namespace SynapseUI
         private void RoundedCorner_ToggledStatusChanged(object sender, Controls.ToggledStatusChangedEventArgs e)
         {
             App.SETTINGS.RoundedCorners = e.Value;
+            if (!_firstLoad)
+                PersistSettings();
         }
 
         private void AceThemesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_aceEditor is null)
-                return;
-
             if (e.AddedItems.Count > 0)
             {
                 string theme = (string)e.AddedItems[0];
-                if (theme == _theme)
+                if (string.Equals(theme, App.SETTINGS.AceTheme, StringComparison.OrdinalIgnoreCase) && !_firstLoad)
                     return;
 
-                var builder = new StringBuilder(theme)
-                    .Replace('-', '_')
-                    .Remove(0, 1)
-                    .Insert(0, char.ToLower(theme[0]));
-
-                _theme = theme;
-                _aceEditor.SetTheme(builder.ToString());
+                App.SETTINGS.AceTheme = theme;
+                _aceEditor?.SetTheme(NormalizeThemeName(theme));
+                if (!_firstLoad)
+                    PersistSettings();
             }
+        }
+
+        private static string NormalizeThemeName(string theme)
+        {
+            return new StringBuilder(theme ?? "Twilight")
+                .Replace('-', '_')
+                .Remove(0, 1)
+                .Insert(0, char.ToLower((theme ?? "Twilight")[0]))
+                .ToString();
         }
 
         private void CloseWindow_Click(object sender, RoutedEventArgs e)

@@ -22,6 +22,8 @@ using System.Net.Http;
 
 public static class Cosmic
 {
+    private const string CosmicRootPath = @"C:\Cosmic";
+
     /// <summary>Fired when a module connects. Provides the process ID.</summary>
     public static event Action<int> OnClientConnected;
 
@@ -39,6 +41,7 @@ public static class Cosmic
     private static HttpListener _listener;
     private static CancellationTokenSource _cts;
     private static readonly ConcurrentDictionary<int, _ModuleClient> _clients = new ConcurrentDictionary<int, _ModuleClient>();
+    private static readonly ConcurrentDictionary<int, byte> _pendingAttachments = new ConcurrentDictionary<int, byte>();
     private static bool _initialized;
 
     private static readonly string[] _robloxProcessNames = { "RobloxPlayerBeta", "Windows10Universal" };
@@ -64,8 +67,7 @@ public static class Cosmic
         if (_initialized) return;
         _initialized = true;
 
-        string cosmicDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Cosmic");
-        Directory.CreateDirectory(cosmicDir);
+        string cosmicDir = _GetCosmicDirectory();
 
         _initTask = Task.WhenAll(
             _DownloadFile("https://auth.cosmic.best/files/dll", Path.Combine(cosmicDir, "Cosmic-Module.dll")),
@@ -81,6 +83,12 @@ public static class Cosmic
         Task.Run(() => _AcceptLoop(_cts.Token));
 
         await _initTask.ConfigureAwait(false);
+    }
+
+    private static string _GetCosmicDirectory()
+    {
+        Directory.CreateDirectory(CosmicRootPath);
+        return CosmicRootPath;
     }
 
     private static async Task _DownloadFile(string url, string destPath)
@@ -112,6 +120,7 @@ public static class Cosmic
             catch { }
         }
         _clients.Clear();
+        _pendingAttachments.Clear();
 
         try { _listener?.Stop(); } catch { }
         try { _listener?.Close(); } catch { }
@@ -127,6 +136,12 @@ public static class Cosmic
         var results = new Dictionary<int, int>();
         foreach (int pid in GetRobloxProcesses())
         {
+            if (_clients.ContainsKey(pid) || _pendingAttachments.ContainsKey(pid))
+            {
+                results[pid] = 7;
+                continue;
+            }
+
             try { results[pid] = Attach(pid); }
             catch { results[pid] = -1; }
         }
@@ -140,26 +155,50 @@ public static class Cosmic
     public static int Attach(int pid)
     {
         _EnsureInit();
-        string cosmicDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Cosmic");
+        if (_clients.ContainsKey(pid) || !_pendingAttachments.TryAdd(pid, 0))
+            return 7;
+
+        string cosmicDir = _GetCosmicDirectory();
         string injector = Path.Combine(cosmicDir, "Cosmic-Injector.exe");
 
         if (!File.Exists(injector))
             throw new FileNotFoundException($"Injector not found at: {injector}");
 
-        using (var proc = Process.Start(new ProcessStartInfo
+        try
         {
-            FileName = injector,
-            Arguments = pid.ToString(),
-            WorkingDirectory = cosmicDir,
-            UseShellExecute = true,
-        }))
-        {
-            if (!proc.WaitForExit(60000))
+            using (var proc = Process.Start(new ProcessStartInfo
             {
-                try { proc.Kill(); } catch { }
-                return -1;
+                FileName = injector,
+                Arguments = pid.ToString(),
+                WorkingDirectory = cosmicDir,
+                UseShellExecute = true,
+            }))
+            {
+                if (!proc.WaitForExit(60000))
+                {
+                    try { proc.Kill(); } catch { }
+                    _pendingAttachments.TryRemove(pid, out _);
+                    return -1;
+                }
+
+                if (proc.ExitCode != 6)
+                    _pendingAttachments.TryRemove(pid, out _);
+                else
+                {
+                    Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
+                    {
+                        if (!_clients.ContainsKey(pid))
+                            _pendingAttachments.TryRemove(pid, out _);
+                    });
+                }
+
+                return proc.ExitCode;
             }
-            return proc.ExitCode;
+        }
+        catch
+        {
+            _pendingAttachments.TryRemove(pid, out _);
+            throw;
         }
     }
 
@@ -209,6 +248,7 @@ public static class Cosmic
             case 3: return "Memory operation failed";
             case 4: return "PDB download failed";
             case 5: return "Injection timeout";
+            case 7: return "Already injected";
             default: return $"Unknown exit code: {exitCode}";
         }
     }
@@ -293,6 +333,7 @@ public static class Cosmic
                 var wsContext = await context.AcceptWebSocketAsync(null).ConfigureAwait(false);
                 var client = new _ModuleClient { Pid = pid, Socket = wsContext.WebSocket };
                 _clients[pid] = client;
+                _pendingAttachments.TryRemove(pid, out _);
 
                 OnClientConnected?.Invoke(pid);
 

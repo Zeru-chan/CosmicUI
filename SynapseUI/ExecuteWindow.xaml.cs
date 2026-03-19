@@ -24,6 +24,7 @@ namespace SynapseUI
         public ExecuteWindow()
         {
             InitializeComponent();
+            App.SETTINGS.ApplyTo(SynOptions);
 
             if (Directory.Exists("./scripts"))
             {
@@ -77,6 +78,7 @@ namespace SynapseUI
                 if (args.Frame.IsMain)
                 {
                     LoadScriptTabs();
+                    ApplySavedTheme();
                 }
             };
 
@@ -116,10 +118,32 @@ namespace SynapseUI
             TabSaver.SaveToXML(scripts, scriptsTabPanel.DefaultIndex);
         }
 
+        private void ApplySavedTheme()
+        {
+            var savedTheme = NormalizeThemeName(App.SETTINGS.AceTheme);
+            Editor?.SetTheme(savedTheme);
+        }
+
+        private static string NormalizeThemeName(string theme)
+        {
+            if (string.IsNullOrWhiteSpace(theme))
+                return "twilight";
+
+            return theme
+                .Replace('-', '_')
+                .ToLowerInvariant();
+        }
+
         private async Task AlertFileSave()
         {
             statusInfoLabel.Content = "Saved file.";
             await statusInfoLabel.SetActive(false);
+        }
+
+        private async Task ShowAttachStatus(string message)
+        {
+            attachInfoLabel.Content = message;
+            await attachInfoLabel.SetActive(false);
         }
 
         private void BeforeScriptTabDelete(object sender, EventArgs args)
@@ -206,20 +230,34 @@ namespace SynapseUI
         {
             try
             {
+                var processes = Cosmic.GetRobloxProcesses();
+                if (processes.Count == 0)
+                {
+                    _ = ShowAttachStatus("No Roblox processes found.");
+                    return;
+                }
+
+                var alreadyInjected = Cosmic.GetClients();
+                if (processes.TrueForAll(pid => alreadyInjected.Contains(pid)))
+                {
+                    _ = ShowAttachStatus("Already injected.");
+                    return;
+                }
+
                 var results = Cosmic.Attach();
                 if (results.Count == 0)
                 {
-                    attachInfoLabel.Content = "No Roblox processes found.";
+                    _ = ShowAttachStatus("Already injected.");
                 }
                 else
                 {
                     var first = System.Linq.Enumerable.First(results.Values);
-                    attachInfoLabel.Content = Cosmic.GetAttachStatusMessage(first);
+                    _ = ShowAttachStatus(Cosmic.GetAttachStatusMessage(first));
                 }
             }
             catch (Exception ex)
             {
-                attachInfoLabel.Content = ex.Message;
+                _ = ShowAttachStatus(ex.Message);
             }
         }
 
@@ -238,7 +276,7 @@ namespace SynapseUI
         {
             if (Cosmic.ClientCount == 0)
             {
-                attachInfoLabel.Content = "Not injected!";
+                _ = ShowAttachStatus("Not injected!");
                 return;
             }
 
@@ -270,7 +308,7 @@ namespace SynapseUI
         {
             if (Cosmic.ClientCount == 0)
             {
-                attachInfoLabel.Content = "Not injected!";
+                _ = ShowAttachStatus("Not injected!");
                 return;
             }
 
@@ -283,7 +321,7 @@ namespace SynapseUI
         {
             if (Cosmic.ClientCount == 0)
             {
-                attachInfoLabel.Content = "Not injected!";
+                _ = ShowAttachStatus("Not injected!");
                 return;
             }
 
