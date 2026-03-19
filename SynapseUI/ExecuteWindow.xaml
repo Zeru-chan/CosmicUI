@@ -228,19 +228,19 @@
                 Style="{StaticResource MarginHoverButton}" />
         </DockPanel>
 
-        <Border
+        <DockPanel
             Grid.Row="3"
             Grid.ColumnSpan="2"
             Margin="0,0,7,0"
             HorizontalAlignment="Right"
-            Orientation="Horizontal"
+            LastChildFill="False"
             VerticalAlignment="Center">
-            <customControls:DisappearingLabel
-                x:Name="attachInfoLabel"
-                Margin="0,0,12,0"
-                VerticalAlignment="Center"
-                Content=""
-                FontSize="11.5" />
+            <Button
+                x:Name="attachButton"
+                Click="AttachButton_Click"
+                Content="Attach"
+                DockPanel.Dock="Right"
+                Style="{StaticResource MarginHoverButton}" />
 
             <Border
                 Margin="0,0,12,0"
@@ -249,14 +249,16 @@
                 BorderBrush="#22313D"
                 BorderThickness="1"
                 CornerRadius="14"
+                DockPanel.Dock="Right"
                 Padding="10,6">
-                <StackPanel Orientation="Horizontal">
+                <DockPanel LastChildFill="False">
                     <Ellipse
                         x:Name="attachStateIndicator"
                         Width="10"
                         Height="10"
                         Margin="0,0,8,0"
                         VerticalAlignment="Center"
+                        DockPanel.Dock="Left"
                         Fill="#FFE14B4B"
                         StrokeThickness="0" />
                     <Label
@@ -267,14 +269,15 @@
                         FontSize="11"
                         FontWeight="SemiBold"
                         Foreground="#FFE1E1E1" />
-                </StackPanel>
+                </DockPanel>
             </Border>
 
-            <Button
-                x:Name="attachButton"
-                Click="AttachButton_Click"
-                Content="Attach"
-                Style="{StaticResource MarginHoverButton}" />
-        </StackPanel>
+            <customControls:DisappearingLabel
+                x:Name="attachInfoLabel"
+                Margin="0,0,12,0"
+                VerticalAlignment="Center"
+                Content=""
+                FontSize="11.5" />
+        </DockPanel>
     </Grid>
 </Window>
