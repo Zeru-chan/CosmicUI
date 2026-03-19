@@ -137,12 +137,14 @@ namespace SynapseUI
         private async Task AlertFileSave()
         {
             statusInfoLabel.Content = "Saved file.";
+            await statusInfoLabel.SetActive(true);
             await statusInfoLabel.SetActive(false);
         }
 
         private async Task ShowAttachStatus(string message)
         {
             attachInfoLabel.Content = message;
+            await attachInfoLabel.SetActive(true);
             await attachInfoLabel.SetActive(false);
         }
 
