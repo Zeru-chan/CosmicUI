@@ -99,6 +99,29 @@ namespace SynapseUI
             return procs.Length != 1;
         }
 
+        private void ValidateCustomInstall()
+        {
+            string[] folders = new string[]
+            {
+                @".\bin\custom\",
+                @".\bin\custom\ace\"
+            };
+
+            foreach (string folder in folders)
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+
+            var downloader = new FileDownloader
+            {
+                BasePath = CURRENT_DIR + @"\bin\custom\",
+                BaseUrl = @"https://raw.githubusercontent.com/asunax-aaa/SynapseUI/master/SynapseUI/Resources/"
+            };
+
+            downloader.Add(new FileEntry("Editor.html", "", "Monaco"));
+
+            downloader.Begin();
+        }
+
         private void ThrowError(BaseException error, string helpInfo)
         {
             new ErrorWindow(new Types.BaseError(error), helpInfo).ShowDialog();

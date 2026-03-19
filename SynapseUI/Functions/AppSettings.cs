@@ -22,17 +22,27 @@ namespace SynapseUI.Settings
 
             var serializer = new XmlSerializer(typeof(AppSettings));
 
-            AppSettings settings;
-            using (var fs = new FileStream(defaultPath, FileMode.Open))
+            try
             {
-                settings = (AppSettings)serializer.Deserialize(fs);
-            }
+                AppSettings settings;
+                using (var fs = new FileStream(defaultPath, FileMode.Open))
+                {
+                    settings = (AppSettings)serializer.Deserialize(fs);
+                }
 
-            return settings;
+                return settings;
+            }
+            catch
+            {
+                var empty = new AppSettings();
+                Save(empty);
+                return empty;
+            }
         }
 
         public static void Save(AppSettings settings)
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(defaultPath));
             var serializer = new XmlSerializer(typeof(AppSettings));
             using (TextWriter writer = new StreamWriter(defaultPath))
             {
