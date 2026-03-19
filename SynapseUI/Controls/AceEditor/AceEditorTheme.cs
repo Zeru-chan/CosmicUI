@@ -6,10 +6,10 @@ namespace SynapseUI.Controls.AceEditor
     {
         public static IReadOnlyList<string> AceThemes { get; } = new[]
         {
+            "Twilight",
             "Tomorrow-night-eighties",
             "Monokai",
             "GitHub",
-            "Twilight",
             "Solarized-dark",
             "Solarized-light"
         };

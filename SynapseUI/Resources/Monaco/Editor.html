@@ -84,14 +84,14 @@
     };
 
     function normalizeThemeName(theme) {
-      var normalized = (theme || "tomorrow_night_eighties")
+      var normalized = (theme || "twilight")
         .replace(/^ace\/theme\//, "")
         .replace(/^theme-/, "")
         .replace(/\.min\.js$/, "")
         .replace(/\.js$/, "");
 
       if (!THEME_URLS[normalized]) {
-        return "tomorrow_night_eighties";
+        return "twilight";
       }
 
       return normalized;
@@ -122,7 +122,7 @@
       var editor = ace.edit("editor");
       ace.config.set("basePath", ACE_CDN_BASE + "/");
       ace.config.set("themePath", ACE_CDN_BASE + "/");
-    editor.setTheme("ace/theme/tomorrow_night_eighties");
+    editor.setTheme("ace/theme/twilight");
     editor.session.setMode("ace/mode/lua");
     try {
       ace.require("ace/ext/language_tools");
@@ -440,7 +440,7 @@
       ensureThemeLoaded(themeName).then(function () {
         editor.setTheme("ace/theme/" + themeName);
       }).catch(function () {
-        editor.setTheme("ace/theme/tomorrow_night_eighties");
+        editor.setTheme("ace/theme/twilight");
       });
     }
 
