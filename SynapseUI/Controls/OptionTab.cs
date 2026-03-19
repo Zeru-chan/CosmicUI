@@ -22,7 +22,7 @@ namespace SynapseUI.Controls
         }
 
         public static readonly DependencyProperty IsMouseLeaveTriggeredProperty =
-            DependencyProperty.Register("IsMouseLeave", typeof(bool), typeof(TabControl), new PropertyMetadata(null));
+            DependencyProperty.Register("IsMouseLeave", typeof(bool), typeof(OptionTab), new PropertyMetadata(false));
 
         public OptionTab() : base()
         {

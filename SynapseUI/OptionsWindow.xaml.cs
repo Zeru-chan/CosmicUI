@@ -7,7 +7,6 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Diagnostics;
 using System.Threading;
-using sxlib.Specialized;
 using SynapseUI.Types;
 using SynapseUI.Functions.Utils;
 using SynapseUI.Controls.AceEditor;
@@ -16,9 +15,6 @@ using System.Linq;
 
 namespace SynapseUI
 {
-    /// <summary>
-    /// Interaction logic for OptionsWindow.xaml
-    /// </summary>
     public partial class OptionsWindow : Window
     {
         public static Mutex RobloxMutex;
@@ -27,19 +23,15 @@ namespace SynapseUI
         private static string _theme = "Tomorrow-night-eighties";
 
         public OptionsEntryList OptionsList { get; } = new OptionsEntryList();
-        public ScriptHubEntries ScriptEntries { get; } = new ScriptHubEntries();
 
-        private SxLibWPF SxUI;
         private bool _firstLoad = true;
-        private AceEditor _aceEditor;
+        private readonly AceEditor _aceEditor;
 
-        private Options _tempOptions = new Options();
+        private readonly Options _tempOptions = new Options();
 
-        public OptionsWindow(SxLibWPF lib, ExecuteWindow main, AceEditor editor)
+        public OptionsWindow(ExecuteWindow main, AceEditor editor)
         {
             InitializeComponent();
-            SxUI = lib;
-
             _aceEditor = editor;
 
             Left = main.Left + (main.ActualWidth - Width) / 2;
@@ -47,7 +39,6 @@ namespace SynapseUI
 
             Closing += (s, e) =>
             {
-                SxUI?.ScriptHubMarkAsClosed();
                 App.SETTINGS.Save();
             };
         }
@@ -56,12 +47,8 @@ namespace SynapseUI
         {
             AnimateShow();
 
-            LoadOptions();
-            LoadScripts();
-
             mutexToggle.IsToggled = _mutexActive;
             aceThemesComboBox.SelectedItem = _theme;
-
             roundedCornerToggle.IsToggled = App.SETTINGS.RoundedCorners;
 
             _firstLoad = false;
@@ -78,39 +65,6 @@ namespace SynapseUI
             stry.Begin();
         }
 
-        public void LoadOptions()
-        {
-            if (SxUI is null)
-                return;
-
-            Options options = new Options(SxUI.GetOptions());
-
-            var presenter = VisualHelper.GetVisualChild<ItemsPresenter>(OptionsPresenter);
-            var panel = VisualTreeHelper.GetChild(presenter, 0) as StackPanel;
-
-            foreach (ContentPresenter child in panel.Children)
-            {
-                var slider = child.ContentTemplate.FindName("toggle", child) as Controls.SliderToggle;
-                var entry = (OptionEntry)child.DataContext;
-
-                slider.IsToggled = options.GetProperty(entry.Name);
-            }
-        }
-
-        public void LoadScripts()
-        {
-            if (SxUI is null)
-                return;
-
-            SxUI.ScriptHubEvent += (entries) =>
-            {
-                foreach (var entry in entries)
-                    ScriptEntries.Add(new ScriptHubEntry(entry));
-            };
-
-            SxUI.ScriptHub();
-        }
-
         public static void DisposeMutex()
         {
             if (RobloxMutex != null)
@@ -123,7 +77,7 @@ namespace SynapseUI
             }
         }
 
-        public static string[] GetSynapseProcesses()
+        public static string[] GetCosmicProcesses()
         {
             string[] excluded = new string[]
             {
@@ -143,31 +97,28 @@ namespace SynapseUI
 
         protected virtual void OnOptionChanged(OptionChangedEventArgs e)
         {
-            if (SxUI is null)
-                return;
-
             OptionChanged?.Invoke(this, e);
         }
 
-
-        // Window Events //
         private void SliderToggle_ToggledStatusChanged(object sender, Controls.ToggledStatusChangedEventArgs e)
         {
             var slider = sender as Controls.SliderToggle;
             OptionEntry entry = (OptionEntry)slider.DataContext;
 
             _tempOptions.SetProperty(entry.Name, e.Value);
-            if (!_firstLoad && SxUI != null)
+            if (!_firstLoad)
             {
-                SxUI.SetOptions(_tempOptions);
+                if (entry.Name == nameof(Options.UnlockFPS))
+                {
+                    Cosmic.SetUnlockFps(e.Value);
+                }
+
                 OnOptionChanged(new OptionChangedEventArgs(entry, e.Value));
             }
         }
 
         private void Execute_ScriptButton(object sender, MouseButtonEventArgs e)
         {
-            var image = sender as Image;
-            (image.DataContext as ScriptHubEntry).Execute();
         }
 
         private void KillRobloxButton_Click(object sender, RoutedEventArgs e)
@@ -181,7 +132,7 @@ namespace SynapseUI
 
         private void KillSynapseButton_Click(object sender, RoutedEventArgs e)
         {
-            var procs = GetSynapseProcesses();
+            var procs = GetCosmicProcesses();
             foreach (var proc in procs)
             {
                 foreach (var process in Process.GetProcessesByName(proc))
@@ -239,12 +190,12 @@ namespace SynapseUI
 
         private void CloseWindow_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void DraggableTop_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            this.DragMove();
+            DragMove();
         }
     }
 

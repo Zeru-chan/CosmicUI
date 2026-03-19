@@ -54,7 +54,7 @@
             <Label
                 Height="30"
                 HorizontalContentAlignment="Center"
-                Content="Synapse X - Error"
+                Content="Cosmic - Error"
                 FontSize="13"
                 Foreground="#FFCF6679" />
 
