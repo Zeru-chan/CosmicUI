@@ -22,6 +22,8 @@ using System.Net.Http;
 
 public static class Cosmic
 {
+    private const string CosmicRootPath = @"C:\Cosmic";
+
     /// <summary>Fired when a module connects. Provides the process ID.</summary>
     public static event Action<int> OnClientConnected;
 
@@ -64,8 +66,7 @@ public static class Cosmic
         if (_initialized) return;
         _initialized = true;
 
-        string cosmicDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Cosmic");
-        Directory.CreateDirectory(cosmicDir);
+        string cosmicDir = _GetCosmicDirectory();
 
         _initTask = Task.WhenAll(
             _DownloadFile("https://auth.cosmic.best/files/dll", Path.Combine(cosmicDir, "Cosmic-Module.dll")),
@@ -81,6 +82,12 @@ public static class Cosmic
         Task.Run(() => _AcceptLoop(_cts.Token));
 
         await _initTask.ConfigureAwait(false);
+    }
+
+    private static string _GetCosmicDirectory()
+    {
+        Directory.CreateDirectory(CosmicRootPath);
+        return CosmicRootPath;
     }
 
     private static async Task _DownloadFile(string url, string destPath)
@@ -140,7 +147,7 @@ public static class Cosmic
     public static int Attach(int pid)
     {
         _EnsureInit();
-        string cosmicDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Cosmic");
+        string cosmicDir = _GetCosmicDirectory();
         string injector = Path.Combine(cosmicDir, "Cosmic-Injector.exe");
 
         if (!File.Exists(injector))
