@@ -50,6 +50,8 @@ namespace SynapseUI.Controls.AceEditor
         public Dictionary<string, string> ScriptMap = new Dictionary<string, string>();
         public Dictionary<string, string> ScriptPathMap = new Dictionary<string, string>();
 
+        private bool _isRestoringTabs;
+
         public AceEditor(string url, ScriptsTabPanel scriptsTab) : base(url)
         {
             this.Focusable = true;
@@ -147,33 +149,39 @@ namespace SynapseUI.Controls.AceEditor
             if (storedScripts?.Scripts == null || storedScripts.Scripts.Count == 0)
                 return true;
 
-            int index = 0;
-            foreach (var script in storedScripts.Scripts)
+            _isRestoringTabs = true;
+            try
             {
-                if (script == null || string.IsNullOrWhiteSpace(script.Filename))
-                    continue;
+                foreach (var script in storedScripts.Scripts)
+                {
+                    if (script == null || string.IsNullOrWhiteSpace(script.Filename))
+                        continue;
 
-                var tab = ScriptsPanel.AddScript(script.Filename, script.Path ?? string.Empty, true);
-                if (tab == null)
-                    continue;
+                    var tab = ScriptsPanel.AddScript(script.Filename, script.Path ?? string.Empty, true);
+                    if (tab == null)
+                        continue;
 
-                ScriptMap[script.Filename] = script.Contents ?? string.Empty;
-                if (!string.IsNullOrWhiteSpace(script.Path))
-                    ScriptPathMap[script.Filename] = script.Path;
+                    ScriptMap[script.Filename] = script.Contents ?? string.Empty;
+                    if (!string.IsNullOrWhiteSpace(script.Path))
+                        ScriptPathMap[script.Filename] = script.Path;
+                }
 
-                if (index == storedScripts.DefaultIndex)
-                    SetText(script.Contents ?? string.Empty);
+                if (ScriptsPanel.Items.Count > 0)
+                {
+                    int safeIndex = storedScripts.DefaultIndex;
+                    if (safeIndex < 0 || safeIndex >= ScriptsPanel.Items.Count)
+                        safeIndex = 0;
 
-                index++;
+                    ScriptsPanel.SelectedIndex = safeIndex;
+                }
+            }
+            finally
+            {
+                _isRestoringTabs = false;
             }
 
             if (ScriptsPanel.Items.Count > 0)
             {
-                int safeIndex = storedScripts.DefaultIndex;
-                if (safeIndex < 0 || safeIndex >= ScriptsPanel.Items.Count)
-                    safeIndex = 0;
-
-                ScriptsPanel.SelectedIndex = safeIndex;
                 var selectedTab = ScriptsPanel.SelectedTab;
                 if (selectedTab != null && ScriptMap.TryGetValue(selectedTab.Header, out string contents))
                     SetText(contents);
@@ -185,6 +193,9 @@ namespace SynapseUI.Controls.AceEditor
 
         private void ScriptTabChanged(object sender, ScriptChangedEventArgs e)
         {
+            if (_isRestoringTabs)
+                return;
+
             var previousTab = ScriptsPanel.LastItem;
             if (previousTab != null && !string.IsNullOrWhiteSpace(previousTab.Header))
                 ScriptMap[previousTab.Header] = GetText();
@@ -203,6 +214,9 @@ namespace SynapseUI.Controls.AceEditor
 
         private void ScriptTabAdded(object sender, ScriptChangedEventArgs e)
         {
+            if (_isRestoringTabs)
+                return;
+
             if (!ScriptMap.ContainsKey(e.File))
             {
                 ScriptMap.Add(e.File, "");
