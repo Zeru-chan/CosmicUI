@@ -103,6 +103,8 @@ namespace SynapseUI
 
             SETTINGS.Load();
 
+            Cosmic.Initialize().GetAwaiter().GetResult();
+
             new SplashScreen().Show();
         }
 
