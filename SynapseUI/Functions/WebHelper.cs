@@ -2,7 +2,6 @@
 using System.Net;
 using System.Collections.Generic;
 using System.IO;
-using System.Diagnostics;
 using System.Text;
 
 namespace SynapseUI.Functions.Web
@@ -81,10 +80,7 @@ namespace SynapseUI.Functions.Web
             var s = new StringBuilder();
 
             foreach ((string url, string path) in BuildEntries())
-            {
-                if (!path.Contains("Updater.exe"))
-                    s.Append($"{url}|{path}|");
-            }
+                s.Append($"{url}|{path}|");
 
             s.Length--;
             return s.ToString();
@@ -109,18 +105,6 @@ namespace SynapseUI.Functions.Web
 
     public static class VersionChecker
     {
-        public static void DownloadUpdater()
-        {
-            string path = Path.Combine(App.CURRENT_DIR, @"bin\custom\Updater.exe");
-            if (!File.Exists(path))
-            {
-                using (WebClient client = new WebClient())
-                {
-                    client.DownloadFile("https://raw.githubusercontent.com/asunax-aaa/SynapseUI/master/SynapseUI/Resources/Updater.exe", path);
-                }
-            }
-        }
-
         public static (string Version, string Url) GetLatestVersion()
         {
             using (WebClient client = new WebClient())
@@ -148,32 +132,6 @@ namespace SynapseUI.Functions.Web
         {
             var ver = typeof(App).Assembly.GetName().Version;
             return $"{ver.Major}.{ver.Minor}.{ver.Build}";
-        }
-
-        public static void Run(FileDownloader fileDownloader)
-        {
-            DownloadUpdater();
-
-            string appName = AppDomain.CurrentDomain.FriendlyName;
-
-            var latest = GetLatestVersion();
-            string current = GetCurrentVersion();
-
-            if (string.IsNullOrWhiteSpace(latest.Version) || latest.Version == current)
-                return;
-
-            string entries = fileDownloader.Build();
-            string arguments = $"\"{App.CURRENT_DIR}\" \"{appName}\" \"{latest.Url}\" \"{entries}\"";
-
-            var proc = new Process();
-            proc.StartInfo.FileName = "Updater.exe";
-            proc.StartInfo.Arguments = arguments;
-            proc.StartInfo.CreateNoWindow = true;
-            proc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            proc.StartInfo.WorkingDirectory = Path.Combine(App.CURRENT_DIR, @"bin\custom\");
-            proc.Start();
-
-            Environment.Exit(0);
         }
     }
 }
