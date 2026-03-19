@@ -49,7 +49,7 @@
             MouseLeftButtonDown="DraggableTop_MouseLeftButtonDown">
             <Label
                 Height="30"
-                Content="Synapse X"
+                Content="Cosmic"
                 Style="{StaticResource DefaultCenterVertText}" />
 
             <Image Source="Resources/logo.png" Style="{StaticResource LogoImage}" />
