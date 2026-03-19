@@ -185,10 +185,13 @@ public static class Cosmic
                     _pendingAttachments.TryRemove(pid, out _);
                 else
                 {
-                    Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
+                    Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(delayTask =>
                     {
                         if (!_clients.ContainsKey(pid))
-                            _pendingAttachments.TryRemove(pid, out _);
+                        {
+                            byte ignored;
+                            _pendingAttachments.TryRemove(pid, out ignored);
+                        }
                     });
                 }
 
