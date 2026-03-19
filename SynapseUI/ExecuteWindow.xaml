@@ -63,7 +63,7 @@
                     Content="vloading..."
                     FontSize="11"
                     Foreground="#FFB9BBBE"
-                    Style="{StaticResource DefaultVertText}" />
+                    Style="{StaticResource DefaultCenterVertText}" />
             </DockPanel>
 
             <Image Source="Resources/logo.png" Style="{StaticResource LogoImage}" />
