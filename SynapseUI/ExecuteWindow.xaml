@@ -47,21 +47,25 @@
             Grid.ColumnSpan="3"
             Background="{StaticResource DraggableBarBackground}"
             MouseLeftButtonDown="DraggableTop_MouseLeftButtonDown">
-            <Label
-                Height="30"
-                Content="Cosmic"
-                Style="{StaticResource DefaultCenterVertText}" />
-
-            <Label
-                x:Name="headerVersionLabel"
-                Margin="82,0,0,0"
-                Height="30"
+            <DockPanel
+                Margin="45,0,0,0"
                 HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Content="vloading..."
-                FontSize="11"
-                Foreground="#FFB9BBBE"
-                Style="{StaticResource DefaultCenterVertText}" />
+                LastChildFill="False">
+                <Label
+                    Height="30"
+                    Content="Cosmic"
+                    Style="{StaticResource DefaultCenterVertText}" />
+
+                <Label
+                    x:Name="headerVersionLabel"
+                    Margin="6,0,0,0"
+                    Height="30"
+                    VerticalAlignment="Center"
+                    Content="vloading..."
+                    FontSize="11"
+                    Foreground="#FFB9BBBE"
+                    Style="{StaticResource DefaultCenterVertText}" />
+            </DockPanel>
 
             <Image Source="Resources/logo.png" Style="{StaticResource LogoImage}" />
 
@@ -242,35 +246,29 @@
                 DockPanel.Dock="Right"
                 Style="{StaticResource MarginHoverButton}" />
 
-            <Border
+            <DockPanel
                 Margin="0,0,12,0"
+                LastChildFill="False"
                 VerticalAlignment="Center"
-                Background="#141A1F"
-                BorderBrush="#22313D"
-                BorderThickness="1"
-                CornerRadius="14"
-                DockPanel.Dock="Right"
-                Padding="10,6">
-                <DockPanel LastChildFill="False">
-                    <Ellipse
-                        x:Name="attachStateIndicator"
-                        Width="10"
-                        Height="10"
-                        Margin="0,0,8,0"
-                        VerticalAlignment="Center"
-                        DockPanel.Dock="Left"
-                        Fill="#FFE14B4B"
-                        StrokeThickness="0" />
-                    <Label
-                        x:Name="attachStateLabel"
-                        Padding="0"
-                        VerticalAlignment="Center"
-                        Content="Not attached"
-                        FontSize="11"
-                        FontWeight="SemiBold"
-                        Foreground="#FFE1E1E1" />
-                </DockPanel>
-            </Border>
+                DockPanel.Dock="Right">
+                <Ellipse
+                    x:Name="attachStateIndicator"
+                    Width="10"
+                    Height="10"
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    DockPanel.Dock="Left"
+                    Fill="#FFE14B4B"
+                    StrokeThickness="0" />
+                <Label
+                    x:Name="attachStateLabel"
+                    Padding="0"
+                    VerticalAlignment="Center"
+                    Content="Not attached"
+                    FontSize="11"
+                    FontWeight="SemiBold"
+                    Foreground="#FFE1E1E1" />
+            </DockPanel>
 
             <customControls:DisappearingLabel
                 x:Name="attachInfoLabel"
